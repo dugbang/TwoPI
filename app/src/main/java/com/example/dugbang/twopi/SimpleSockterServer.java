@@ -32,8 +32,8 @@ public class SimpleSockterServer {
 
             try {
                 socket = serverSocket.accept();
-                System.out.println("console> 서버 " + socket.getInetAddress() + " 클라이언트와 " +
-                        socket.getLocalPort() + " 포트로 연결되었습니다.");
+                //System.out.println("console> 서버 " + socket.getInetAddress() + " 클라이언트와 " +
+                //        socket.getLocalPort() + " 포트로 연결되었습니다.");
 
                 InputStream i_stream = socket.getInputStream();
                 DataInputStream dis = new DataInputStream(i_stream);
