@@ -1,1 +1,1 @@
-include ':app'
+include ':app', ':poi-ooxml-3.9'

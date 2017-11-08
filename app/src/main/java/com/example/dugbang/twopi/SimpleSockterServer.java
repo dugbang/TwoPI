@@ -14,6 +14,11 @@ import java.util.Date;
  */
 
 public class SimpleSockterServer {
+    /*
+    본 클래스 자체를 스레드에서 파생한 것으로 재정의하면 그냥 2PI 앱에서 사용가능
+    이 경우 main => run 으로 변경
+    2PI 앱에서 thread.start() 호출
+     */
     static final int PORT = 8888;
     private static ServerSocket serverSocket;
     private static Socket socket;
