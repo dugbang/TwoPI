@@ -11,15 +11,15 @@ import java.util.List;
  * Created by shbae on 2017-11-08.
  */
 
-public class LoadExcelTest {
+public class ReadExcelTest {
 
-    private LoadExcel loadExcel;
+    private ReadExcel readExcel;
     // List<Integer> list = new ArrayList<Integer>(m.keySet());
 
     @Before
     public void setUp() throws Exception {
-        loadExcel = new LoadExcel();
-        loadExcel.setExcelFile("D:/BaseBlockId.xlsx");
+        readExcel = new ReadExcel();
+        readExcel.setExcelFile("D:/BaseBlockId.xlsx");
     }
 
     private void outPutMap(HashMap<Integer, String> map) {
@@ -35,7 +35,7 @@ public class LoadExcelTest {
         List<HashMap<Integer, String>> list = new ArrayList<HashMap<Integer, String>>();
 
         for(int i = 0; i < 3; i++) {
-            HashMap<Integer, String> map = loadExcel.readExcelSheet(i);
+            HashMap<Integer, String> map = readExcel.readBlockIdSheet(i);
             list.add(map);
         }
 
@@ -46,12 +46,18 @@ public class LoadExcelTest {
 
     @Test
     public void openExcel() throws Exception {
-        HashMap<Integer, String> map = loadExcel.readExcelSheet(0);
-        HashMap<Integer, String> map2 = loadExcel.readExcelSheet(1);
-        HashMap<Integer, String> map3 = loadExcel.readExcelSheet(2);
+        HashMap<Integer, String> map = readExcel.readBlockIdSheet(0);
+        HashMap<Integer, String> map2 = readExcel.readBlockIdSheet(1);
+        HashMap<Integer, String> map3 = readExcel.readBlockIdSheet(2);
 
         outPutMap(map);
         outPutMap(map2);
         outPutMap(map3);
     }
+
+    @Test
+    public void readContents() throws Exception {
+
+    }
+
 }

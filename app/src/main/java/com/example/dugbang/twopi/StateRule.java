@@ -2,18 +2,28 @@ package com.example.dugbang.twopi;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by shbae on 2017-11-02.
  */
 
-class Action {
+class StateRule {
 
     public static final int USER_ID_MIN_LIMIT = 0xFF0000;
     public static final int USER_ID_MAX_LIMIT = 0xFFFFFF;
+
     public static final int STATE_STORY_ACTIVE = 2;
     public static final int STATE_READY = 1;
     public static final int STATE_NONACTIVE = 0;
+
+    public static final int BASE_MAP_INDEX_CONTROL = 0;
+    public static final int BASE_MAP_INDEX_SHAPE = 1;
+    public static final int BASE_MAP_INDEX_ALPHABAT = 2;
+    public static final int BASE_MAP_INDEX_EMOTION = 3;
+    public static final int BASE_MAP_INDEX_NUMBER = 4;
+    public static final int BASE_MAP_INDEX_SIZE = 5;
+
 
     private int state = STATE_NONACTIVE;
     private int activeUserId = 0;
@@ -27,6 +37,7 @@ class Action {
     private HashMap<Integer, String> storyMap;
 
 
+    /*
     private ArrayList<Integer> controlKey;
     private HashMap<Integer, String> controlMap;
 
@@ -39,10 +50,19 @@ class Action {
     private ArrayList<Integer> emotionKey;
     private HashMap<Integer, String> emotionMap;
 
+    private ArrayList<Integer> numberKey;
+    private HashMap<Integer, String> numberMap;
+    */
 
-    public Action () {
+    private List<HashMap<Integer, String>> list_map;
+    private List<ArrayList<Integer>> list_key;
+
+
+    public StateRule() {
 
         userId = new ArrayList<Integer>();
+
+
         baseKey = new ArrayList<Integer>();
         baseMap = new HashMap<Integer, String>();
 
@@ -60,7 +80,50 @@ class Action {
 
     public void loadBaseBlockId() {
 
-        // TODO; loadFileToBlockId 를 안드로이드 적용 사용방법 모색 > SQLite
+        ReadExcel readExcel = new ReadExcel();
+        readExcel.setExcelFile("D:/BaseBlockId.xlsx");
+
+        list_map = new ArrayList<HashMap<Integer, String>>();
+        list_key = new ArrayList<ArrayList<Integer>>();
+
+        for (int i = 0; i < BASE_MAP_INDEX_SIZE; i++) {
+            HashMap<Integer, String> map = readExcel.readBlockIdSheet(i);
+            list_map.add(map);
+            list_key.add(new ArrayList<Integer>(map.keySet()));
+        }
+
+/*
+
+        for (int i = 0; i < BASE_MAP_INDEX_SIZE; i++) {
+            dbg_OutputBlockId(list_key.get(i), list_map.get(i));
+        }
+
+        controlMap = readExcel.readBlockIdSheet(BASE_MAP_INDEX_CONTROL);
+        controlKey = new ArrayList<Integer>(controlMap.keySet());
+        Collections.sort(controlKey);
+
+        shapeMap = readExcel.readBlockIdSheet(BASE_MAP_INDEX_SHAPE);
+        shapeKey = new ArrayList<Integer>(shapeMap.keySet());
+        Collections.sort(shapeKey);
+
+        alphabetMap = readExcel.readBlockIdSheet(BASE_MAP_INDEX_ALPHABAT);
+        alphabetKey = new ArrayList<Integer>(alphabetMap.keySet());
+        Collections.sort(alphabetKey);
+
+        emotionMap = readExcel.readBlockIdSheet(BASE_MAP_INDEX_EMOTION);
+        emotionKey = new ArrayList<Integer>(emotionMap.keySet());
+        Collections.sort(emotionKey);
+
+        numberMap = readExcel.readBlockIdSheet(BASE_MAP_INDEX_NUMBER);
+        numberKey = new ArrayList<Integer>(numberMap.keySet());
+        Collections.sort(numberKey);
+
+        dbg_OutputBlockId(controlKey, controlMap);
+        dbg_OutputBlockId(shapeKey, shapeMap);
+        dbg_OutputBlockId(alphabetKey, alphabetMap);
+        dbg_OutputBlockId(emotionKey, emotionMap);
+        dbg_OutputBlockId(numberKey, numberMap);
+
         controlKey = new ArrayList<Integer>();
         controlMap = new HashMap<Integer, String>();
         loadFileToBlockId("D:\\Control.csv", controlKey, controlMap);
@@ -77,12 +140,15 @@ class Action {
         emotionMap = new HashMap<Integer, String>();
         loadFileToBlockId("D:\\Emotion.csv", emotionKey, emotionMap);
 
-/*
-        dbg_OutputBlockId(controlKey, controlMap);
-        dbg_OutputBlockId(shapeKey, shapeMap);
-        dbg_OutputBlockId(alphabetKey, alphabetMap);
-        dbg_OutputBlockId(emotionKey, emotionMap);
 */
+    }
+
+    private int getMatchBaseMapIndex(int blockId) {
+        for (int i = 0; i < BASE_MAP_INDEX_SIZE; i++) {
+            if (list_key.get(i).contains(blockId))
+                return i;
+        }
+        return BASE_MAP_INDEX_SIZE;
     }
 
     public String insertBlock(int blockId) {
@@ -101,26 +167,55 @@ class Action {
             return "OK";
         }
 
+
         if (isNonActive())
             return "FAIL";
         else if (isReady()) {
-            if (controlKey.contains(blockId)) {
+            int matchIndex = getMatchBaseMapIndex(blockId);
+
+            switch (matchIndex) {
+                case BASE_MAP_INDEX_CONTROL:
+                    break;
+                case BASE_MAP_INDEX_SHAPE:
+                    // TODO; 해당 놀이 로딩....
+                    state = STATE_STORY_ACTIVE;
+                    break;
+                case BASE_MAP_INDEX_ALPHABAT:
+                    state = STATE_STORY_ACTIVE;
+                    break;
+                case BASE_MAP_INDEX_EMOTION:
+                    state = STATE_STORY_ACTIVE;
+                    break;
+                case BASE_MAP_INDEX_NUMBER:
+                    state = STATE_STORY_ACTIVE;
+                    break;
+                case BASE_MAP_INDEX_SIZE:
+                    // TODO; 내부 DB 에 관련 콘텐츠가 있으면 로딩 없으면
+                    // 서버에 접속하여 해당 콘텐츠를 다운로드 하여야 함.
+                    return "DOWNLOAD";
+            }
+
+            /*
+            if (matchIndex == BASE_MAP_INDEX_CONTROL) {
                 // NOP
-            } else if (alphabetKey.contains(blockId)) {
-                loadFileToBlockId("D:\\Story_Alphabet.csv", storyKey, storyMap);
+            } else if (matchIndex == BASE_MAP_INDEX_SHAPE) {
+                //loadFileToBlockId("D:\\Story_Alphabet.csv", storyKey, storyMap);
                 state = STATE_STORY_ACTIVE;
-            } else if (shapeKey.contains(blockId)) {
-                loadFileToBlockId("D:\\Story_Shape.csv", storyKey, storyMap);
+            } else if (matchIndex == BASE_MAP_INDEX_ALPHABAT) {
+                //loadFileToBlockId("D:\\Story_Shape.csv", storyKey, storyMap);
                 state = STATE_STORY_ACTIVE;
-            } else if (emotionKey.contains(blockId)) {
-                loadFileToBlockId("D:\\Story_Emotion.csv", storyKey, storyMap);
+            } else if (matchIndex == BASE_MAP_INDEX_EMOTION) {
+                //loadFileToBlockId("D:\\Story_Emotion.csv", storyKey, storyMap);
+                state = STATE_STORY_ACTIVE;
+            } else if (matchIndex == BASE_MAP_INDEX_NUMBER) {
+                //loadFileToBlockId("D:\\Story_Emotion.csv", storyKey, storyMap);
                 state = STATE_STORY_ACTIVE;
             } else {
                 // TODO; 내부 DB 에 관련 콘텐츠가 있으면 로딩 없으면
                 // 서버에 접속하여 해당 콘텐츠를 다운로드 하여야 함.
                 return "DOWNLOAD";
-
             }
+            */
 
         } else if (isStoryActive()) {
             if (storyKey.contains(blockId)) {
@@ -185,7 +280,7 @@ class Action {
         }
     }
 
-    private void dbg_OutputBlockId(ArrayList<Integer> key,
+    private void dbg_OutputBlockId(List<Integer> key,
                                    HashMap<Integer, String> map) {
 
         for (int i = 0; i < key.size(); i++) {
@@ -194,6 +289,8 @@ class Action {
         }
     }
 
+
+/*
 
     public void loadBlockFile(String fileName) {
         SmartBlock blockInfo = new SmartBlock();
@@ -226,10 +323,9 @@ class Action {
 
     }
 
-    //public ActionException e = new ActionException();
+    //public StateRuleException e = new StateRuleException();
 
-/*
-    public void insertBlock(int blockID) throws ActionException {
+    public void insertBlock(int blockID) throws StateRuleException {
         if (blockID == 0) {
             e.errorCode = 1;
             e.msg = "블록정보 인식 오류";
@@ -241,5 +337,6 @@ class Action {
         }
     }
 */
+
 
 }
