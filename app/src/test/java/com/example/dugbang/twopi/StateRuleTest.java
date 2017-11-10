@@ -30,6 +30,30 @@ public class StateRuleTest {
         assertActionState(0);
     }
 
+    @Test
+    public void loadContents() throws Exception {
+        assertActionState(stateRule.STATE_NONACTIVE);
+        assertAction(0xFFFFFF, "OK");
+        assertUserId(0xFFFFFF);
+        assertActionState(stateRule.STATE_READY);
+
+        loadContentsOfNumber();
+        assertActionState(stateRule.STATE_STORY_ACTIVE);
+
+        // play contents ==================
+        assertAction(47, "OK");
+        assertAction(3, "OK");
+        assertAction(3, "OK");
+        assertAction(53, "OK");
+        assertAction(50, "OK");
+        assertAction(50, "OK");
+        assertAction(3, "OK");
+    }
+
+    private void loadContentsOfNumber() {
+        assertAction(50, "OK");
+    }
+
     //@Test(expected=Exception.class)
     @Test
     public void insertBlock() throws Exception {
@@ -43,7 +67,7 @@ public class StateRuleTest {
 
         assertAction(1, "OK");
         assertActionState(1);
-        assertAction(7, "OK");
+        assertAction(50, "OK");
         assertActionState(2);
 
         assertAction(0xFF0000, "OK");
@@ -54,9 +78,6 @@ public class StateRuleTest {
         assertActionState(2);
 
         /*
-        assertAction(130, "MATCH");
-        assertAction(100, "MISS MATCH");
-
         assertAction(0xFF0000, "OK");
         assertActionState(1);
 

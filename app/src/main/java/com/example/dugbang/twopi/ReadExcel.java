@@ -1,13 +1,14 @@
 package com.example.dugbang.twopi;
 
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by shbae on 2017-11-08.
@@ -39,13 +40,37 @@ class ReadExcel {
             if (row == null)
                 break;
 
-            XSSFCell cell = row.getCell(1);
-            result.put((int)cell.getNumericCellValue(), row.getCell(2).getStringCellValue());
+            //XSSFCell cell = row.getCell(1);
+            result.put((int)row.getCell(1).getNumericCellValue(), row.getCell(2).getStringCellValue());
 
             rowIndex++;
         }
-
         return result;
     }
 
+    public List<ContentsData> readContents() {
+        List<ContentsData> result = new ArrayList<ContentsData>();
+        XSSFSheet sheet = wb.getSheetAt(0);
+
+        int rowIndex = 4;
+        while (true) {
+            XSSFRow row = sheet.getRow(rowIndex);
+            if (row == null)
+                break;
+
+            ContentsData data = new ContentsData();
+            try {
+                data.desc = row.getCell(1).getStringCellValue();
+                data.sceneId = (int)row.getCell(3).getNumericCellValue();
+                data.questId = (int)row.getCell(4).getNumericCellValue();
+                data.blockId = (int)row.getCell(6).getNumericCellValue();
+            } catch (Exception e) {
+                break;
+            }
+
+            result.add(data);
+            rowIndex++;
+        }
+        return result;
+    }
 }
