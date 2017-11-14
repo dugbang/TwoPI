@@ -38,10 +38,9 @@ class StateRule {
     private int state = STATE_NONACTIVE;
     private int activeUserId = 0;
 
-    private ArrayList<Integer> userId;
-
     private List<HashMap<Integer, String>> list_map;
     private List<ArrayList<Integer>> list_key;
+
     private List<ContentsData> actionStep;
     private SimpleDateFormat actionTimeFormat;
     private List<ActionLogData> actionLogList;
@@ -49,20 +48,19 @@ class StateRule {
     private int actionIndex;
     private int matchBaseIndex;
 
+    private ServerBlockId mockServerBlockId;
+    private ServerDownload serverDownload;
+
 
     public StateRule() {
 
         actionTimeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
-        //Date to = transFormat.parse(from);
         actionLogList = new ArrayList<ActionLogData>();
 
-        loadBaseBlockId();
+        mockServerBlockId = new MockServerBlockId();
+        serverDownload = new ServerDownload();
 
-        // TODO; 시스템에 최초 설치시 등록되어야 하는 부분 > SQLite
-        // 테스트를 위해 하드코딩함. > SQLite에 저장 가능
-        userId = new ArrayList<Integer>();
-        userId.add(USER_ID_MAX_LIMIT);
-        userId.add(USER_ID_MAX_LIMIT - 1);
+        loadBaseBlockId();
     }
 
     public void loadBaseBlockId() {
@@ -85,7 +83,9 @@ class StateRule {
             if (list_key.get(matchBaseIndex).contains(blockId)) {
                 if (matchBaseIndex != BASE_MAP_INDEX_CONTROL) {
                     state = STATE_STORY_ACTIVE;
+                    contentsName = STRING_BASE_INDEX[matchBaseIndex];
                     loadBaseContents();
+                    ContentsDisplay();
                 }
                 return;
             }
@@ -99,9 +99,7 @@ class StateRule {
         if (isUserIdBlock(blockId)) {
             // TODO; 다른 상태에서 대기상태로 초기화 하는 부분 필요.???
             if (isStoryActive()) {
-                // TODO; 지금까지의 내용을 저장하여 엑셀파일을 생성 > 나중에 서버 업로드.
-                actionLogList.clear();
-                actionStep.clear();
+                endOfContents();
             }
             // TODO; 사용자 ID 사용에 따른 기능 추가 필요.???
             activeUserId = blockId;
@@ -115,23 +113,35 @@ class StateRule {
         else if (isReady()) {
             matchBaseMapIndex(blockId);
             if (matchBaseIndex == BASE_MAP_INDEX_SIZE) {
-                // TODO; 내부 DB 에 관련 콘텐츠가 있으면 로딩 없으면
-                // 서버에 접속하여 해당 콘텐츠를 다운로드 하여야 함.
-                // > 사용하는 경로 지정 필요, 클래스 시작 시점에 정보저장 필요.
-                return "DOWNLOAD";
+                contentsName = serverDownload.download(
+                        mockServerBlockId.getPathContentsFile(blockId), StateRule.ROOT_DIR);
+                loadBaseContents();
             }
         } else if (isStoryActive()) {
-            saveBlcokId(blockId);
+            saveBlcokId(actionIndex, blockId);
+
             if (isBlockIdBack(blockId)) {
                 if (actionIndex > 0)
                     actionIndex--;
             } else {
                 actionIndex++;
             }
-            ContentsDisplay();
+            if (actionStep.size() == actionIndex)
+                endOfContents();
+            else
+                ContentsDisplay();
         }
 
         return "OK";
+    }
+
+    private void endOfContents() {
+        // TODO; 지금까지의 내용을 저장하여 엑셀파일을 생성 > 나중에 서버 업로드.
+        System.out.println("endOfContents()");
+        actionLogList.clear();
+        actionStep.clear();
+
+        state = STATE_READY;
     }
 
     private boolean isBlockIdError(int blockId) {
@@ -142,8 +152,9 @@ class StateRule {
         return blockId == 3;
     }
 
-    private void saveBlcokId(int blockId) {
+    private void saveBlcokId(int actionIndex, int blockId) {
         ActionLogData actionInfo = new ActionLogData();
+        actionInfo.actionIndex = actionIndex;
         actionInfo.blockId = blockId;
         actionInfo.actionTime = actionTimeFormat.format(new Date());
         actionLogList.add(actionInfo);
@@ -152,16 +163,18 @@ class StateRule {
     }
 
     private void ContentsDisplay() {
-        System.out.println(actionIndex + " > " + actionStep.get(actionIndex).desc);
+        String outStr = actionIndex + " > " + actionStep.get(actionIndex).desc
+                        + ", bg; " + actionStep.get(actionIndex).getBackgroundImage();
+        System.out.println(outStr);
     }
 
     private void loadBaseContents() {
         ReadExcel readExcel = new ReadExcel();
-        readExcel.setExcelFile(ROOT_DIR + STRING_BASE_INDEX[matchBaseIndex]);
+        readExcel.setExcelFile(ROOT_DIR + contentsName);
         actionStep = readExcel.readContents();
-        actionStep.get(0).contentsId = matchBaseIndex;
+
         actionIndex = 0;
-        contentsName = STRING_BASE_INDEX[matchBaseIndex];
+        actionStep.get(actionIndex).contentsId = matchBaseIndex;
     }
 
     public void setTimeOut() {
@@ -190,6 +203,14 @@ class StateRule {
 
     public int getState() {
         return state;
+    }
+
+    public List<HashMap<Integer, String>> getList_map() {
+        return list_map;
+    }
+
+    public List<ArrayList<Integer>> getList_key() {
+        return list_key;
     }
 
 

@@ -62,7 +62,7 @@ public class ReadExcelTest {
 
     @Test
     public void readContents() throws Exception {
-        readExcel.setExcelFile("D:/ContentsNumber.xlsx");
+        readExcel.setExcelFile("D:/Documents/휴먼케어/2PI_root/ContentsShape.xlsx");
         List<ContentsData> list = readExcel.readContents();
 
         for(int i = 0; i < list.size(); i++) {

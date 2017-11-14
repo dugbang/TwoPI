@@ -65,6 +65,7 @@ class ReadExcel {
                 data.questId = (int)row.getCell(4).getNumericCellValue();
                 data.blockId = (int)row.getCell(6).getNumericCellValue();
             } catch (Exception e) {
+                //e.printStackTrace();
                 break;
             }
 

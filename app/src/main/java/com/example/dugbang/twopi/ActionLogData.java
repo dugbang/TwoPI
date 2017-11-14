@@ -5,6 +5,7 @@ package com.example.dugbang.twopi;
  */
 
 class ActionLogData {
+    public int actionIndex;
     public int blockId;
     public String actionTime;
 }

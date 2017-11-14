@@ -31,7 +31,19 @@ public class StateRuleTest {
     }
 
     @Test
-    public void loadContents() throws Exception {
+    public void 신규_콘텐츠_다운로드() throws Exception {
+        assertActionState(stateRule.STATE_NONACTIVE);
+        assertAction(0xFFFFFE, "OK");
+        assertUserId(0xFFFFFE);
+        assertActionState(stateRule.STATE_READY);
+
+        // play contents =========================
+        assertAction(100, "OK");
+
+    }
+
+    @Test
+    public void 콘텐츠_진행_완료후_다른_콘텐츠_불러오기() throws Exception {
         assertActionState(stateRule.STATE_NONACTIVE);
         assertAction(0xFFFFFF, "OK");
         assertUserId(0xFFFFFF);
@@ -42,21 +54,24 @@ public class StateRuleTest {
 
         // play contents ==================
         assertAction(47, "OK");
-        assertAction(3, "OK");
+        assertAction(53, "OK");
         assertAction(3, "OK");
         assertAction(53, "OK");
         assertAction(50, "OK");
         assertAction(50, "OK");
-        assertAction(3, "OK");
-    }
-
-    private void loadContentsOfNumber() {
-        assertAction(50, "OK");
+        assertAction(53, "OK");
+        assertActionState(stateRule.STATE_STORY_ACTIVE);
+        assertAction(54, "OK");
+        assertActionState(stateRule.STATE_READY);
+        assertAction(10, "OK");
+        assertActionState(stateRule.STATE_STORY_ACTIVE);
+        assertAction(9, "OK");
+        assertAction(8, "OK");
     }
 
     //@Test(expected=Exception.class)
     @Test
-    public void insertBlock() throws Exception {
+    public void 동작중에_사용자ID_변경하기() throws Exception {
         assertThat(stateRule.insertBlock(0), is(nullValue()));
 
         assertAction(1, "FAIL");
@@ -73,17 +88,10 @@ public class StateRuleTest {
         assertAction(0xFF0000, "OK");
         assertUserId(0xFF0000);
         assertActionState(1);
+    }
 
-        assertAction(20, "OK");
-        assertActionState(2);
-
-        /*
-        assertAction(0xFF0000, "OK");
-        assertActionState(1);
-
-        assertAction(130, "DOWNLOAD");
-        */
-
+    private void loadContentsOfNumber() {
+        assertAction(50, "OK");
     }
 
     private void assertUserId(int value) {
@@ -97,7 +105,5 @@ public class StateRuleTest {
     private void assertAction(int blockId, String value) {
         assertThat(stateRule.insertBlock(blockId), is(value));
     }
-
-
 
 }

@@ -42,7 +42,13 @@ public class SimpleSockterServer {
 
                 InputStream i_stream = socket.getInputStream();
                 DataInputStream dis = new DataInputStream(i_stream);
+
+                String line = dis.readUTF();
+                int pos = line.indexOf(",");
+                int blockId = Integer.parseInt(line.substring(pos+1));
+
                 System.out.println("console> 수신 response : " + dis.readUTF());
+                System.out.println("blockId : " + blockId);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -53,7 +59,7 @@ public class SimpleSockterServer {
     }
 
     private static String getTime() {
-        SimpleDateFormat f = new SimpleDateFormat("[hh:mm:ss]");
+        SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
         return f.format(new Date());
     }
 }
