@@ -62,6 +62,7 @@ public class StateRuleTest {
         assertAction(53, "OK");
         assertActionState(stateRule.STATE_STORY_ACTIVE);
         assertAction(54, "OK");
+        assertAction(54, "OK");
         assertActionState(stateRule.STATE_READY);
         assertAction(10, "OK");
         assertActionState(stateRule.STATE_STORY_ACTIVE);

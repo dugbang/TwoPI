@@ -6,4 +6,5 @@ package com.example.dugbang.twopi;
 
 public interface ServerBlockId {
     public String getPathContentsFile(int blockId);
+    public String getFileName(int blockId);
 }

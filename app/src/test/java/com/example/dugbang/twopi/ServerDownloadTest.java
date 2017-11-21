@@ -18,7 +18,8 @@ public class ServerDownloadTest {
 
     @Test
     public void UrlAddressDownload() throws Exception {
+        ContentsPath contentsPath = new PcContentsPath();
         String url = "http://192.168.0.40/2pi/Contents_100.xlsx";
-        serverDownload.download(url, StateRule.ROOT_DIR);
+        serverDownload.download(url, contentsPath.getRoot());
     }
 }

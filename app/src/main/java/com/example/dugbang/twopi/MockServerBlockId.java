@@ -12,4 +12,9 @@ public class MockServerBlockId implements ServerBlockId {
     public String getPathContentsFile(int blockId) {
         return "http://192.168.0.40/2pi/Contents_100.xlsx";
     }
+
+    @Override
+    public String getFileName(int blockId) {
+        return "Contents_100.xlsx";
+    }
 }

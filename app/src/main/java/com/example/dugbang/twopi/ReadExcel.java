@@ -29,10 +29,9 @@ class ReadExcel {
         }
     }
 
-    public HashMap<Integer, String> readBlockIdSheet(int index) {
+    public HashMap<Integer, String> readBlockIdSheet(int sheetIndex) {
         HashMap<Integer, String> result = new HashMap<Integer, String>();
-
-        XSSFSheet sheet = wb.getSheetAt(index);
+        XSSFSheet sheet = wb.getSheetAt(sheetIndex);
 
         int rowIndex = 4;
         while (true) {
@@ -42,7 +41,6 @@ class ReadExcel {
 
             //XSSFCell cell = row.getCell(1);
             result.put((int)row.getCell(1).getNumericCellValue(), row.getCell(2).getStringCellValue());
-
             rowIndex++;
         }
         return result;
@@ -63,7 +61,9 @@ class ReadExcel {
                 data.desc = row.getCell(1).getStringCellValue();
                 data.sceneId = (int)row.getCell(3).getNumericCellValue();
                 data.questId = (int)row.getCell(4).getNumericCellValue();
-                data.blockId = (int)row.getCell(6).getNumericCellValue();
+                // TODO: action index > 어떤 방식으로 이동할 것인지는 좀더 검토해야함...
+                //data.nextIndex = (int)row.getCell(5).getNumericCellValue();
+                data.correctId = (int)row.getCell(7).getNumericCellValue();
             } catch (Exception e) {
                 //e.printStackTrace();
                 break;

@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/TwoPI.iml" filepath="$PROJECT_DIR$/TwoPI.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/poi-ooxml-3.9/poi-ooxml-3.9.iml" filepath="$PROJECT_DIR$/poi-ooxml-3.9/poi-ooxml-3.9.iml" />
     </modules>
   </component>
 </project>

@@ -67,7 +67,7 @@ public class ReadExcelTest {
 
         for(int i = 0; i < list.size(); i++) {
             System.out.println(list.get(i).desc + ", " + list.get(i).sceneId + ", " +
-                    list.get(i).questId + ", " + list.get(i).blockId);
+                    list.get(i).questId + ", " + list.get(i).correctId);
         }
 
     }

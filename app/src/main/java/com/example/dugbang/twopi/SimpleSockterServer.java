@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by dugbang on 2017-10-28.
@@ -30,10 +28,11 @@ public class SimpleSockterServer {
             e.printStackTrace();
         }
         System.out.println("console> 서버 : 클라이언트의 접속을 기다립니다.");
+        StateRule stateRule = new StateRule();
 
 //          소켓 서버가 종료될 때까지 무한루프
         while(true) {
-            System.out.println(getTime() + " 연결요청을 기다립니다.");
+            //System.out.println(getTime() + " 연결요청을 기다립니다.");
 
             try {
                 socket = serverSocket.accept();
@@ -47,8 +46,9 @@ public class SimpleSockterServer {
                 int pos = line.indexOf(",");
                 int blockId = Integer.parseInt(line.substring(pos+1));
 
-                System.out.println("console> 수신 response : " + dis.readUTF());
+                //System.out.println("console> 수신 response : " + dis.readUTF());
                 System.out.println("blockId : " + blockId);
+                System.out.println(stateRule.insertBlock(blockId));
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -58,8 +58,8 @@ public class SimpleSockterServer {
         }
     }
 
-    private static String getTime() {
-        SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
-        return f.format(new Date());
-    }
+//    private static String getTime() {
+//        SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
+//        return f.format(new Date());
+//    }
 }
