@@ -63,7 +63,7 @@ public class LoadBlockIdList {
         String fileName = "";
         while (keySetIterator.hasNext()) {
             String key = keySetIterator.next();
-            //System.out.println("key: " + key + " value: " + baseBlockIdMap.get(key));
+//            System.out.println("key: " + key + " value: " + baseBlockIdMap.get(key));
             if (baseBlockIdMap.get(key).contains(blockId)) {
                 fileName = key;
                 break;
@@ -78,11 +78,14 @@ public class LoadBlockIdList {
         if (fileName.equals("Control"))
             return false;
 
-        fileName = serverBlockId.getFileName(blockId);
-        if (!contentsPath.validFileName(fileName)) {
-            fileName = serverDownload.download(serverBlockId.getPathContentsFile(blockId), contentsPath.getRoot());
+//        System.out.println("fileName: " + fileName);
+        if (fileName.equals("")) {
+            fileName = serverBlockId.getFileName(blockId);
+            if (!contentsPath.validFileName(fileName)) {
+                fileName = serverDownload.download(serverBlockId.getPathContentsFile(blockId), contentsPath.getRoot());
+            }
+            System.out.println("fileName: " + fileName);
         }
-        //System.out.println("fileName: " + fileName);
         loadContentsFile(fileName);
         return true;
     }
@@ -109,8 +112,9 @@ public class LoadBlockIdList {
         readExcel.setExcelFile(contentsPath.getRoot() + fileName);
 
         actionStep = readExcel.readContents();
-        ContentsData.fileName = fileName;
         blockIdDesc = readExcel.readBlockIdSheet(1);
+        ContentsData.fileName = fileName;
+        System.out.println("fileName: " + fileName + ", actionStep size; " + actionStep.size());
     }
 
     public List<ContentsData> getActionStep() {

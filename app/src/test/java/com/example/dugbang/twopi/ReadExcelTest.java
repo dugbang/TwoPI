@@ -22,7 +22,7 @@ public class ReadExcelTest {
     }
 
     private void outPutMap(HashMap<Integer, String> map) {
-        readExcel.setExcelFile("D:/BaseBlockId.xlsx");
+        readExcel.setExcelFile(PcContentsPath.PC_ROOT + "BaseBlockId.xlsx");
 
         List<Integer> key = new ArrayList<Integer>(map.keySet());
         for (int i = 0; i < key.size(); i++) {
@@ -33,7 +33,7 @@ public class ReadExcelTest {
 
     @Test
     public void listMap() throws Exception {
-        readExcel.setExcelFile("D:/BaseBlockId.xlsx");
+        readExcel.setExcelFile(PcContentsPath.PC_ROOT + "BaseBlockId.xlsx");
 
         List<HashMap<Integer, String>> list = new ArrayList<HashMap<Integer, String>>();
 
@@ -49,7 +49,7 @@ public class ReadExcelTest {
 
     @Test
     public void openExcel() throws Exception {
-        readExcel.setExcelFile("D:/BaseBlockId.xlsx");
+        readExcel.setExcelFile(PcContentsPath.PC_ROOT + "BaseBlockId.xlsx");
 
         HashMap<Integer, String> map = readExcel.readBlockIdSheet(0);
         HashMap<Integer, String> map2 = readExcel.readBlockIdSheet(1);
@@ -62,12 +62,12 @@ public class ReadExcelTest {
 
     @Test
     public void readContents() throws Exception {
-        readExcel.setExcelFile("D:/Documents/휴먼케어/2PI_root/ContentsShape.xlsx");
+        readExcel.setExcelFile(PcContentsPath.PC_ROOT + "ContentsShape.xlsx");
         List<ContentsData> list = readExcel.readContents();
 
         for(int i = 0; i < list.size(); i++) {
             System.out.println(list.get(i).desc + ", " + list.get(i).sceneId + ", " +
-                    list.get(i).questId + ", " + list.get(i).correctId);
+                    list.get(i).questId + ", " + list.get(i).actionNumber);
         }
 
     }

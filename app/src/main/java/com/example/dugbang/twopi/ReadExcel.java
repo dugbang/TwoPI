@@ -1,5 +1,6 @@
 package com.example.dugbang.twopi;
 
+import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -61,14 +62,21 @@ class ReadExcel {
                 data.desc = row.getCell(1).getStringCellValue();
                 data.sceneId = (int)row.getCell(3).getNumericCellValue();
                 data.questId = (int)row.getCell(4).getNumericCellValue();
-                // TODO: action index > 어떤 방식으로 이동할 것인지는 좀더 검토해야함...
-                //data.nextIndex = (int)row.getCell(5).getNumericCellValue();
-                data.correctId = (int)row.getCell(7).getNumericCellValue();
+                data.actionNumber = (int)row.getCell(6).getNumericCellValue();
+                switch (row.getCell(5).getCellType()){
+                    case HSSFCell.CELL_TYPE_NUMERIC:
+                        data.nextPos = (int)row.getCell(5).getNumericCellValue()+"";
+                        break;
+                    case HSSFCell.CELL_TYPE_STRING:
+                        data.nextPos = row.getCell(5).getStringCellValue()+"";
+                        break;
+                    default:
+                        throw new Exception();
+                }
             } catch (Exception e) {
-                //e.printStackTrace();
+//                e.printStackTrace();
                 break;
             }
-
             result.add(data);
             rowIndex++;
         }

@@ -11,8 +11,8 @@ class ContentsData {
     public String desc;
     public int sceneId;
     public int questId;
-    public int nextIndex;
-    public int correctId;
+    public int actionNumber;
+    public String nextPos;
 
     public String getBackgroundImage() {
         return String.format("..._%02d_%02d", sceneId, questId);
