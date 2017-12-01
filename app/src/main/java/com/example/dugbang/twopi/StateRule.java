@@ -1,5 +1,7 @@
 package com.example.dugbang.twopi;
 
+import android.content.Context;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,20 +29,27 @@ class StateRule {
     private List<ContentsData> actionStep;
     private List<ActionLogData> actionLogList;
 
-    private final LoadBlockIdList loadBlockIdList;
     private final WriteExcel writeExcel;
     private final Stack actionStack;
 
+    private final LoadBlockIdList loadBlockIdList;
 
-    public StateRule() {
+    public StateRule(Context context) {
         actionTimeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
         actionLogList = new ArrayList<ActionLogData>();
 
-        loadBlockIdList = new LoadBlockIdList();
         writeExcel = new WriteExcel();
-
         actionStack = new Stack();
+
+        if (context == null) {
+            loadBlockIdList = new LoadBlockIdList();
+            loadBlockIdList.init(new PcContentsPath());
+        } else {
+            loadBlockIdList = new LoadBlockIdList();
+            loadBlockIdList.init(new AndroidContentsPath(context, false));
+        }
     }
+
 
     public String insertBlock(int blockId) {
         if (isBlockIdError(blockId)) return null;
@@ -140,7 +149,6 @@ class StateRule {
         actionInfo.blockId = blockId;
         actionInfo.actionTime = actionTimeFormat.format(new Date());
         actionLogList.add(actionInfo);
-
         //System.out.println(actionInfo.actionTime + " > " + list_map.get(matchBaseIndex).get(actionInfo.actionNumber));
     }
 

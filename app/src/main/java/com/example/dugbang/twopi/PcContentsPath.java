@@ -20,7 +20,8 @@ public class PcContentsPath implements ContentsPath {
         String fileList[] = path.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.startsWith("Contents_");        // "Contents" 시작하는 파일들만 return
+//                return name.startsWith("Contents_");
+                return name.endsWith(".xlsx");
             }
         });
         return Arrays.asList(fileList);

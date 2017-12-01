@@ -21,7 +21,7 @@ public class StateRuleTest {
 
     @Before
     public void setUp() throws Exception {
-        stateRule = new StateRule();
+        stateRule = new StateRule(null);
         timeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
     }
 
@@ -61,7 +61,6 @@ public class StateRuleTest {
         assertAction(8, "OK");
         assertAction(9, "OK");
         assertAction(7, "OK");
-//        actionBack();
     }
 
     private void actionBack() {

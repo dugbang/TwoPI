@@ -28,7 +28,7 @@ public class SimpleSockterServer {
             e.printStackTrace();
         }
         System.out.println("console> 서버 : 클라이언트의 접속을 기다립니다.");
-        StateRule stateRule = new StateRule();
+        StateRule stateRule = new StateRule(null);
 
 //          소켓 서버가 종료될 때까지 무한루프
         while(true) {

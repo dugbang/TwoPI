@@ -19,6 +19,7 @@ public class LoadBlockIdListTest {
     @Before
     public void setUp() throws Exception {
         loadBlockIdList = new LoadBlockIdList();
+        loadBlockIdList.init(new PcContentsPath());
     }
 
     @After
@@ -39,6 +40,11 @@ public class LoadBlockIdListTest {
     }
 
     @Test
+    public void loadBaseContents() throws Exception {
+        loadBlockIdList.loadBaseContents();
+    }
+
+    @Test
     public void loadContents() throws Exception {
         System.out.println("len: " + loadBlockIdList.STRING_BASE_INDEX.length);
         System.out.println("LoadContents: " + loadBlockIdList.LoadContents(2));
@@ -51,7 +57,7 @@ public class LoadBlockIdListTest {
     }
 
     @Test
-    public void LoadBaseBlockIdEx() throws Exception {
+    public void loadBaseBlockIdEx() throws Exception {
         HashMap<String, ArrayList<Integer>> baseBlockIdMap = loadBlockIdList.getBaseBlockIdMap();
 
         Iterator<String> keySetIterator = loadBlockIdList.getBaseBlockIdMap().keySet().iterator();

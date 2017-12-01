@@ -1,6 +1,6 @@
 package com.example.dugbang.twopi;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -30,14 +30,14 @@ class ReadExcel {
         }
     }
 
-    public HashMap<Integer, String> readBlockIdSheet(int sheetIndex) {
+    public HashMap<Integer, String> readSheetIndex(int sheetIndex) {
         HashMap<Integer, String> result = new HashMap<Integer, String>();
         XSSFSheet sheet = wb.getSheetAt(sheetIndex);
 
         int rowIndex = 4;
         while (true) {
             XSSFRow row = sheet.getRow(rowIndex);
-            if (row == null)
+            if (row == null || row.getCell(2).getStringCellValue().length()==0)
                 break;
 
             //XSSFCell cell = row.getCell(1);
@@ -47,14 +47,20 @@ class ReadExcel {
         return result;
     }
 
+    public HashMap<Integer, String> readBlockIdDesc() {
+        return readSheetIndex(1);
+    }
+
     public List<ContentsData> readContents() {
         List<ContentsData> result = new ArrayList<ContentsData>();
         XSSFSheet sheet = wb.getSheetAt(0);
 
+        DataFormatter formatter = new DataFormatter();
+
         int rowIndex = 4;
         while (true) {
             XSSFRow row = sheet.getRow(rowIndex);
-            if (row == null)
+            if (row == null || row.getCell(1).getStringCellValue().length()==0)
                 break;
 
             ContentsData data = new ContentsData();
@@ -63,18 +69,20 @@ class ReadExcel {
                 data.sceneId = (int)row.getCell(3).getNumericCellValue();
                 data.questId = (int)row.getCell(4).getNumericCellValue();
                 data.actionNumber = (int)row.getCell(6).getNumericCellValue();
-                switch (row.getCell(5).getCellType()){
-                    case HSSFCell.CELL_TYPE_NUMERIC:
-                        data.nextPos = (int)row.getCell(5).getNumericCellValue()+"";
-                        break;
-                    case HSSFCell.CELL_TYPE_STRING:
-                        data.nextPos = row.getCell(5).getStringCellValue()+"";
-                        break;
-                    default:
-                        throw new Exception();
-                }
+                data.nextPos = formatter.formatCellValue(row.getCell(5));
+//                row.getCell(5).getCellStyle()
+//                switch (row.getCell(5).getCellType()){
+//                    case XSSFCell.CELL_TYPE_NUMERIC:
+//                        data.nextPos = (int)row.getCell(5).getNumericCellValue()+"";
+//                        break;
+//                    case XSSFCell.CELL_TYPE_STRING:
+//                        data.nextPos = row.getCell(5).getStringCellValue()+"";
+//                        break;
+//                    default:
+//                        throw new Exception();
+//                }
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
                 break;
             }
             result.add(data);

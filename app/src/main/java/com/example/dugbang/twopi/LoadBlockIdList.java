@@ -8,7 +8,7 @@ import java.util.List;
 public class LoadBlockIdList {
 
     public static final String[] STRING_BASE_INDEX = {
-            "Control",
+            "BaseBlockId.xlsx",
             "ContentsShape.xlsx",
             "ContentsAlphabat.xlsx",
             "ContentsEmotion.xlsx",
@@ -28,15 +28,31 @@ public class LoadBlockIdList {
     public LoadBlockIdList() {
         serverBlockId = new MockServerBlockId();
         serverDownload = new ServerDownload();
-        contentsPath = new PcContentsPath();
 
         baseBlockIdMap = new HashMap<String, ArrayList<Integer>>();
         baseBlockIdDesc = new HashMap<Integer, String>();
 
         blockIdDesc = null;
         actionStep = null;
+    }
 
+    public void init(ContentsPath contentsPath) {
+
+        // TODO; 안드로이드 실행시 해당 부분을 다시 초기화 할 필요가 있음.
+        this.contentsPath = contentsPath;
+        loadBaseContents();
         loadBaseBlockId();
+    }
+
+    public void loadBaseContents() {
+        String fileName;
+        for (int i = 0; i < STRING_BASE_INDEX.length; i++) {
+            fileName = STRING_BASE_INDEX[i];
+            if (!contentsPath.validFileName(fileName)) {
+                fileName = serverDownload.download(serverBlockId.getServerDownloadUrl() + fileName, contentsPath.getRoot());
+                System.out.println("fileName: " + fileName);
+            }
+        }
     }
 
     private void loadBaseBlockId() {
@@ -44,7 +60,7 @@ public class LoadBlockIdList {
         readExcel.setExcelFile(contentsPath.getRoot() + "BaseBlockId.xlsx");
 
         for (int i = 0; i < STRING_BASE_INDEX.length; i++) {
-            HashMap<Integer, String> map = readExcel.readBlockIdSheet(i);
+            HashMap<Integer, String> map = readExcel.readSheetIndex(i);
             ArrayList<Integer> blockIds = new ArrayList<Integer>();
 
             Iterator<Integer> keySetIterator = map.keySet().iterator();
@@ -75,7 +91,7 @@ public class LoadBlockIdList {
     public boolean LoadContents(int blockId) {
 
         String fileName = matchBlockId(blockId);
-        if (fileName.equals("Control"))
+        if (fileName.equals("BaseBlockId.xlsx"))
             return false;
 
 //        System.out.println("fileName: " + fileName);
@@ -90,29 +106,12 @@ public class LoadBlockIdList {
         return true;
     }
 
-//    private void loadContentsBlockId() {
-//        Iterator<String> keySetIterator = contentsPath.getFileList().iterator();
-//        ReadExcel readExcel = new ReadExcel();
-//        while (keySetIterator.hasNext()) {
-//            readExcel.setExcelFile(contentsPath.getRoot() + keySetIterator.next());
-//            addBlockIdDesc(readExcel.readBlockIdSheet(1));
-//        }
-//    }
-//
-//    private void addBlockIdDesc(HashMap<Integer, String> blockIdSheet) {
-//        Iterator<Integer> keySetIterator = blockIdSheet.keySet().iterator();
-//        while (keySetIterator.hasNext()) {
-//            Integer key = keySetIterator.next();
-//            baseBlockIdDesc.put(key, blockIdSheet.get(key));
-//        }
-//    }
-
     private void loadContentsFile(String fileName) {
         ReadExcel readExcel = new ReadExcel();
         readExcel.setExcelFile(contentsPath.getRoot() + fileName);
 
         actionStep = readExcel.readContents();
-        blockIdDesc = readExcel.readBlockIdSheet(1);
+        blockIdDesc = readExcel.readBlockIdDesc();
         ContentsData.fileName = fileName;
         System.out.println("fileName: " + fileName + ", actionStep size; " + actionStep.size());
     }
