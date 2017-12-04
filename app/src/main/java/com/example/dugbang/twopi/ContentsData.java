@@ -6,7 +6,6 @@ package com.example.dugbang.twopi;
 
 // TODO; 요구사항을 반영하여야 함.
 class ContentsData {
-    //public static int contentsId = 0;
     public static String fileName;
     public String desc;
     public int sceneId;

@@ -2,11 +2,15 @@ package com.example.dugbang.twopi;
 
 import android.content.Context;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Stack;
+
+import au.com.bytecode.opencsv.CSVWriter;
 
 /**
  * Created by shbae on 2017-11-02.
@@ -29,25 +33,24 @@ class StateRule {
     private List<ContentsData> actionStep;
     private List<ActionLogData> actionLogList;
 
-    private final WriteExcel writeExcel;
     private final Stack actionStack;
 
-    private final LoadBlockIdList loadBlockIdList;
+    private ContentsPath contentsPath;
+    private final ContentsFileList contentsFileList;
 
     public StateRule(Context context) {
         actionTimeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
         actionLogList = new ArrayList<ActionLogData>();
 
-        writeExcel = new WriteExcel();
         actionStack = new Stack();
 
-        if (context == null) {
-            loadBlockIdList = new LoadBlockIdList();
-            loadBlockIdList.init(new PcContentsPath());
-        } else {
-            loadBlockIdList = new LoadBlockIdList();
-            loadBlockIdList.init(new AndroidContentsPath(context, false));
-        }
+        if (context == null)
+            contentsPath = new PcContentsPath();
+        else
+            contentsPath = new AndroidContentsPath(context, false);
+
+        contentsFileList = new ContentsFileList(contentsPath);
+//        contentsFileList.dbg_output();
     }
 
 
@@ -98,8 +101,9 @@ class StateRule {
     }
 
     private void loadContents(int blockId) {
-        if (loadBlockIdList.LoadContents(blockId)) {
-            actionStep = loadBlockIdList.getActionStep();
+        List<ContentsData> result = contentsFileList.LoadContents(blockId);
+        if (result != null) {
+            actionStep = result;
             actionIndex = 0;
             state = STATE_STORY_ACTIVE;
 
@@ -120,10 +124,7 @@ class StateRule {
     }
 
     private void endOfContents() {
-        // TODO; 지금까지의 내용을 저장하여 엑셀파일을 생성 > 나중에 서버 업로드.
-        writeExcel.createFile(getFileName());
-        writeExcel.logData(actionLogList);
-        writeExcel.close();
+        writeActionLog();
 
         System.out.println("endOfContents()");
         actionLogList.clear();
@@ -133,6 +134,26 @@ class StateRule {
             actionStack.pop();
         }
         state = STATE_READY;
+    }
+
+    private void writeActionLog() {
+        String timeStr = actionTimeFormat.format(new Date());
+        String fileName = String.format("0x%06X_%s_%s.log", activeUserId, timeStr, ContentsData.fileName);
+
+        try {
+            CSVWriter cw = new CSVWriter(new FileWriter(contentsPath.getRoot() + fileName), ',', '"');
+            try {
+                ActionLogData log;
+                for (int i = 0; i < actionLogList.size(); i++) {
+                    log = actionLogList.get(i);
+                    cw.writeNext(new String[]{i + 1 + "", log.actionIndex + "", log.blockId + "", log.actionTime + ""});
+                }
+            } finally {
+                cw.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean isBlockIdError(int blockId) {
@@ -153,7 +174,7 @@ class StateRule {
     }
 
     private void ContentsDisplay() {
-        // TODO; 메인쪽에 이벤트로 발생하여야 함.
+        // TODO; 메인쪽에 이벤트로 발생되어야 함.
         int displayIndex = actionIndex + 1;
         String outStr = ContentsData.fileName + "; " + displayIndex + " > "
                 + actionStep.get(actionIndex).desc

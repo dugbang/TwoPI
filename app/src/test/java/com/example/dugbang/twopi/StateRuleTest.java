@@ -84,6 +84,16 @@ public class StateRuleTest {
     }
 
     @Test
+    public void 레디상태에서_없는_블록_ID가_투입된경우() throws Exception {
+        assertActionState(stateRule.STATE_SLEEP);
+        assertAction(0xFFFFFE, "OK");
+        assertUserId(0xFFFFFE);
+        assertActionState(stateRule.STATE_READY);
+        assertAction(99, "OK");
+        assertActionState(stateRule.STATE_READY);
+    }
+
+    @Test
     public void 저장파일명구하기() throws Exception {
         assertActionState(stateRule.STATE_SLEEP);
         assertAction(0xFFFFFF, "OK");
@@ -93,7 +103,7 @@ public class StateRuleTest {
         loadContentsOfNumber();
         assertActionState(stateRule.STATE_STORY_ACTIVE);
 
-        assertThat(stateRule.getFileName(), is(String.format("0xFFFFFF_%s_ContentsNumber.xlsx", timeFormat.format(new Date()))));
+        assertThat(stateRule.getFileName(), is(String.format("0xFFFFFF_%s_ContentsNumber.csv", timeFormat.format(new Date()))));
 
         assertAction(53, "OK");
         assertAction(50, "OK");
@@ -103,7 +113,7 @@ public class StateRuleTest {
         assertAction(0xFFFFF0, "OK");
         assertUserId(0xFFFFF0);
         assertAction(100, "OK");
-        assertThat(stateRule.getFileName(), is(String.format("0xFFFFF0_%s_Contents_100.xlsx", timeFormat.format(new Date()))));
+        assertThat(stateRule.getFileName(), is(String.format("0xFFFFF0_%s_Contents_100.csv", timeFormat.format(new Date()))));
     }
 
     @Test
@@ -143,16 +153,16 @@ public class StateRuleTest {
         assertActionState(0);
         assertAction(0xFFFFFF, "OK");
         assertUserId(0xFFFFFF);
-        assertActionState(1);
+        assertActionState(StateRule.STATE_READY);
 
-        assertAction(1, "OK");
-        assertActionState(1);
-        assertAction(50, "OK");
-        assertActionState(2);
+//        assertAction(1, "OK");
+//        assertActionState(StateRule.STATE_READY);
+        loadContentsOfNumber();
+        assertActionState(StateRule.STATE_STORY_ACTIVE);
 
         assertAction(0xFF0000, "OK");
         assertUserId(0xFF0000);
-        assertActionState(1);
+        assertActionState(StateRule.STATE_READY);
     }
 
     private void loadContentsOfNumber() {

@@ -57,4 +57,17 @@ public class AndroidContentsPath implements ContentsPath {
         });
         return Arrays.asList(fileList);
     }
+
+    @Override
+    public List<String> getFileList(final String start_filter) {
+        File path = new File(appRoot);
+
+        String fileList[] = path.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(start_filter);
+            }
+        });
+        return Arrays.asList(fileList);
+    }
 }

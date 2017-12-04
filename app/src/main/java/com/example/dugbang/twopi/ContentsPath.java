@@ -10,4 +10,5 @@ public interface ContentsPath {
     public String getRoot();
     public boolean validFileName(String fileName);
     public List<String> getFileList();
+    public List<String> getFileList(String start_filter);
 }

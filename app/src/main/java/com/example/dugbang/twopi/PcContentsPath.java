@@ -20,8 +20,7 @@ public class PcContentsPath implements ContentsPath {
         String fileList[] = path.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-//                return name.startsWith("Contents_");
-                return name.endsWith(".xlsx");
+                return name.endsWith(".csv");
             }
         });
         return Arrays.asList(fileList);
@@ -36,5 +35,18 @@ public class PcContentsPath implements ContentsPath {
     public boolean validFileName(String fileName) {
         List<String> fileList = getFileList();
         return fileList.contains(fileName);
+    }
+
+    @Override
+    public List<String> getFileList(final String start_filter) {
+        File path = new File(PC_ROOT);
+
+        String fileList[] = path.list(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.startsWith(start_filter);
+            }
+        });
+        return Arrays.asList(fileList);
     }
 }
