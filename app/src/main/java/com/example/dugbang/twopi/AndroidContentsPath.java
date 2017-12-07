@@ -16,7 +16,7 @@ public class AndroidContentsPath implements ContentsPath {
     private final String appRoot;
 
     public AndroidContentsPath(Context context, boolean deleteFlag) {
-        appRoot = context.getFilesDir().getAbsolutePath();
+        appRoot = context.getFilesDir().getAbsolutePath() + "/";
         File file = new File(appRoot);
         if (file.exists())
             file.mkdirs();
@@ -51,8 +51,7 @@ public class AndroidContentsPath implements ContentsPath {
         String fileList[] = path.list(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-//                return name.startsWith("Contents_");
-                return name.endsWith(".xlsx");
+                return name.endsWith(".csv");
             }
         });
         return Arrays.asList(fileList);

@@ -40,9 +40,6 @@ class ContentsFileList {
     private ServerBlockId serverBlockId;
     private ServerDownload serverDownload;
 
-//    private List<ContentsData> actionStep = null;
-
-
     public ContentsFileList(ContentsPath contentsPath) {
         this.contentsPath = contentsPath;
         serverDownload = new ServerDownload();
@@ -56,12 +53,31 @@ class ContentsFileList {
         loadBaseBlockIds();
     }
 
+    public HashMap<Integer, String> getBlockIdDesc() {
+        return baseBlockIdDesc;
+    }
+
+    public List<ContentsData> LoadContents(int blockId) {
+        String fileName = matchBlockId(blockId);
+        System.out.println("fileName: " + fileName);
+
+        if (fileName != null)
+            return loadContentsFile(fileName);
+
+        fileName = serverBlockId.getFileName(blockId);
+        if (fileName == null)
+            return null;
+
+        contentsDownload(fileName);
+        return loadContentsFile(fileName);
+    }
+
     private void baseContentsDownload() {
         for (int i = 0; i < BASE_FILE_LIST.length; i++) {
             String fileName = BASE_FILE_LIST[i];
             if (!contentsPath.validFileName(fileName)) {
-                fileName = serverDownload.download(serverBlockId.getServerDownloadUrl() + fileName, contentsPath.getRoot());
                 System.out.println("Download fileName: " + fileName);
+                serverDownload.download(serverBlockId.getServerDownloadUrl() + fileName, contentsPath.getRoot());
             }
         }
     }
@@ -72,7 +88,6 @@ class ContentsFileList {
             String BlockIdFile = keySetIterator.next();
             if (BlockIdFile.equals("BlockIdBase.csv"))
                 continue;
-//            System.out.println("csv file: " + BlockIdFile);
             readBlockIdCsvFile(BlockIdFile);
         }
     }
@@ -117,21 +132,6 @@ class ContentsFileList {
     private Iterator<String> getBlockIdSortIterator() {
         TreeMap<String, ArrayList<Integer>> tm = new TreeMap<String, ArrayList<Integer>>(baseBlockIdMap);
         return tm.keySet().iterator();
-    }
-
-    public List<ContentsData> LoadContents(int blockId) {
-        String fileName = matchBlockId(blockId);
-        System.out.println("fileName: " + fileName);
-
-        if (fileName != null)
-            return loadContentsFile(fileName);
-
-        fileName = serverBlockId.getFileName(blockId);
-        if (fileName == null)
-            return null;
-
-        contentsDownload(fileName);
-        return loadContentsFile(fileName);
     }
 
     private void contentsDownload(String fileName) {

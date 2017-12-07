@@ -42,11 +42,12 @@ public class SimpleSockterServer {
                 InputStream i_stream = socket.getInputStream();
                 DataInputStream dis = new DataInputStream(i_stream);
 
+//                System.out.println("console> 수신 response : " + dis.readUTF());
+
                 String line = dis.readUTF();
                 int pos = line.indexOf(",");
                 int blockId = Integer.parseInt(line.substring(pos+1));
 
-                //System.out.println("console> 수신 response : " + dis.readUTF());
                 System.out.println("blockId : " + blockId);
                 System.out.println(stateRule.insertBlock(blockId));
 

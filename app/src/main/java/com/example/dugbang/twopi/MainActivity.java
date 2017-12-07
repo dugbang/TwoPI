@@ -1,10 +1,21 @@
 package com.example.dugbang.twopi;
 
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanRecord;
+import android.bluetooth.le.ScanResult;
 import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.io.DataInputStream;
@@ -12,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 import static com.example.dugbang.twopi.SimpleSockterServer.PORT;
 
@@ -22,23 +34,126 @@ public class MainActivity extends AppCompatActivity {
     private ServerThread thread;
     private int blockId;
     private StateRule stateRule;
+    private RadioGroup rg;
+    private boolean bleFlag = false;
 
+    private int mMajor;
+    private int mMinor;
+
+    BleReceiver bleReceiver;
+    private static final int PERMISSIONS = 100;
+    ScanCallback mScanCallback;
+    String strScanResult;
+    private EditText macAddress;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (bleFlag == true) {
+            bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        ActivityCompat.requestPermissions(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSIONS);
 
+        bleReceiver = new BleReceiver(BluetoothAdapter.getDefaultAdapter());
 
-        output = (TextView) findViewById(R.id.textView);
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
+        macAddress = (EditText) findViewById(R.id.macAddress);
+        output = (TextView) findViewById(R.id.textView);
 
-//        System.setProperty("org.apache.poi.javax.xml.stream.XMLInputFactory", "com.fasterxml.aalto.stax.InputFactoryImpl");
-//        System.setProperty("org.apache.poi.javax.xml.stream.XMLOutputFactory", "com.fasterxml.aalto.stax.OutputFactoryImpl");
-//        System.setProperty("org.apache.poi.javax.xml.stream.XMLEventFactory", "com.fasterxml.aalto.stax.EventFactoryImpl");
+        rg = (RadioGroup) findViewById(R.id.radioGroup1);
+        rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                if (checkedId == R.id.bleOff) {
+                    bleFlag = false;
+                    bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+                } else {
+                    bleFlag = true;
+                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
+                    bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
+                }
+            }
+        });
 
-//        stateRule = new StateRule(getApplicationContext());
+        mScanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+                try {
+                    ScanRecord scanRecord = result.getScanRecord();
+                    Log.d("getTxPowerLevel()", scanRecord.getTxPowerLevel() + "");
+                    byte[] scanData = scanRecord.getBytes();
 
+                    strScanResult = result.getDevice().getAddress()
+                            + "\n" + result.getRssi()
+                            + "\n" + result.getDevice().getName()
+                            + "\n" + result.getDevice().getBondState()
+                            + "\n" + result.getDevice().getType();
+                    Log.d("onScanResult()", strScanResult);
+
+                    mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
+                    mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+//                    blockId = (scanData[26] & 0xff) * 0x10000
+//                            + (scanData[27] & 0xff) * 0x100
+//                            + (scanData[28] & 0xff);
+//                    stateRule.insertBlock(blockId);
+
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    output.setText("onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n");
+                                }
+                            });
+                        }
+                    }).start();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onBatchScanResults(List<ScanResult> results) {
+                super.onBatchScanResults(results);
+                Log.d("onBatchScanResults", results.size() + "");
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+                Log.d("onScanFailed()", errorCode + "");
+            }
+        };
+
+        Button clearButton = (Button) findViewById(R.id.clear);
+        clearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                output.setText("");
+            }
+        });
+
+        Button logUploadButton = (Button) findViewById(R.id.logUpload);
+        logUploadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO; 업로드 프로세스 구현...
+                output.setText("upload process 구현하기...");
+            }
+        });
+
+        stateRule = new StateRule(getApplicationContext());
         getLocalIpAddress();
 
         try {
@@ -48,53 +163,33 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             output.setText("Server Thread를 시작하지 못했습니다." + e.toString());
         }
-
-        System.out.println("ddd");
-
-//        String outStr = "ddd...";
-//        output.setText(txt_ipAddress.getText());
     }
 
     class ServerThread extends Thread {
         Handler mHandler = new Handler();
-
         private ServerSocket serverSocket;
-//        private final ConsoleOutput out;
-
         public ServerThread() throws IOException {
             serverSocket = new ServerSocket(PORT);
-
-//            out = new AndroidConsoleOutput();
-//            out.mHandler = mHandler;
         }
 
         @Override
         public void run() {
-//            System.out.println("console> 서버 : 클라이언트의 접속을 기다립니다.");
             while(true) {
                 try {
                     Socket socket = serverSocket.accept();
-                    //System.out.println("console> 서버 " + socket.getInetAddress() + " 클라이언트와 " +
-                    //        socket.getLocalPort() + " 포트로 연결되었습니다.");
 
                     InputStream i_stream = socket.getInputStream();
                     DataInputStream dis = new DataInputStream(i_stream);
 
                     String line = dis.readUTF();
-                    int pos = line.indexOf(",");
-                    blockId = Integer.parseInt(line.substring(pos+1));
-//                    stateRule.insertBlock(Integer.parseInt(line.substring(pos+1)));
+                    blockId = Integer.parseInt(line.substring(line.indexOf(",")+1));
+                    stateRule.insertBlock(blockId);
 
                     mHandler.post(new Runnable() {
                         public void run() {
                             output.setText("console> 수신 blockId : " + blockId);
                         }
                     });
-
-//                        System.out.println("console> 수신 response : " + dis.readUTF());
-//                        System.out.println("blockId : " + blockId);
-//                        System.out.println(stateRule.insertBlock(blockId));
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

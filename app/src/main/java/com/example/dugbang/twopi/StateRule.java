@@ -47,7 +47,7 @@ class StateRule {
         if (context == null)
             contentsPath = new PcContentsPath();
         else
-            contentsPath = new AndroidContentsPath(context, false);
+            contentsPath = new AndroidContentsPath(context, true);
 
         contentsFileList = new ContentsFileList(contentsPath);
 //        contentsFileList.dbg_output();
@@ -91,9 +91,9 @@ class StateRule {
         } else if (nextPos.substring(0, 1).equals("B")) {
             actionIndex -= Integer.parseInt(nextPos.substring(1));
             if (actionIndex < 0) {
-                StateRuleException e = new StateRuleException();
-                e.msg = "콘텐츠 파일의 이동범위를 벋어났습니다.";
-                throw e;
+//                StateRuleException e = new StateRuleException("콘텐츠 파일의 이동범위를 벋어났습니다.");
+//                e.msg = "콘텐츠 파일의 이동범위를 벋어났습니다.";
+                throw new StateRuleException("콘텐츠 파일의 이동범위를 벋어났습니다.");
             }
         } else {
             actionIndex = Integer.parseInt(nextPos) - 1;
