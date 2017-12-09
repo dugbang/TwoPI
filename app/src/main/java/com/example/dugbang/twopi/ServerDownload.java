@@ -37,7 +37,6 @@ class ServerDownload {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
         return fileName;
     }
 
@@ -61,6 +60,7 @@ class ServerDownload {
             URLConnection connection = null;
 
             try {
+                // TODO; timeout 처리할 필요가 있음. 연결되지 않을 때 앱은 정지됨.
                 URL url = new URL(urlStr);
                 connection = url.openConnection();
                 connection.connect();

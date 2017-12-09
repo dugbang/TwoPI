@@ -9,8 +9,10 @@ import android.net.DhcpInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -36,15 +38,18 @@ public class MainActivity extends AppCompatActivity {
     private StateRule stateRule;
     private RadioGroup rg;
     private boolean bleFlag = false;
-
     private int mMajor;
-    private int mMinor;
 
+    private int mMinor;
     BleReceiver bleReceiver;
+
     private static final int PERMISSIONS = 100;
     ScanCallback mScanCallback;
     String strScanResult;
     private EditText macAddress;
+    private SendMassgeHandler mMainHandler;
+    private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
+    private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
 
     @Override
     protected void onDestroy() {
@@ -67,6 +72,7 @@ public class MainActivity extends AppCompatActivity {
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
         macAddress = (EditText) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
+        output.setMovementMethod(new ScrollingMovementMethod());
 
         rg = (RadioGroup) findViewById(R.id.radioGroup1);
         rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -101,22 +107,34 @@ public class MainActivity extends AppCompatActivity {
 
                     mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
                     mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+
+                    Message msg = mMainHandler.obtainMessage();
+                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
+                    msg.obj = "onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n";
+                    mMainHandler.sendMessage(msg);
+
+                    // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
 //                    blockId = (scanData[26] & 0xff) * 0x10000
 //                            + (scanData[27] & 0xff) * 0x100
 //                            + (scanData[28] & 0xff);
 //                    stateRule.insertBlock(blockId);
+//
+//                    msg = mMainHandler.obtainMessage();
+//                    msg.what = HANDLER_EVENT_ACTION_MESSAGE;
+//                    msg.obj = stateRule.getOutMsg();
+//                    mMainHandler.sendMessage(msg);
 
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    output.setText("onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n");
-                                }
-                            });
-                        }
-                    }).start();
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            runOnUiThread(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    output.setText("onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n");
+//                                }
+//                            });
+//                        }
+//                    }).start();
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -154,20 +172,57 @@ public class MainActivity extends AppCompatActivity {
         });
 
         stateRule = new StateRule(getApplicationContext());
-        getLocalIpAddress();
+        mMainHandler = new SendMassgeHandler();
 
+        getLocalIpAddress();
         try {
             thread = new ServerThread();
             thread.start();
-            output.setText("서비스가 시작되었습니다.\n");
+            println("서비스가 시작되었습니다.\n");
         } catch (IOException e) {
-            output.setText("Server Thread를 시작하지 못했습니다." + e.toString());
+            println("Server Thread를 시작하지 못했습니다." + e.toString());
+        }
+    }
+
+    private void println(String outputText) {
+        String prevText = output.getText().toString() + "\n" + outputText;
+        output.setText(prevText);
+//        int lineTop =  output.getLayout().getLineTop(output.getLineCount()) ;
+//        int scrollY = lineTop - output.getHeight();
+//        if (scrollY > 0) {
+//            output.scrollTo(0, scrollY);
+//        } else {
+//            output.scrollTo(0, 0);
+//        }
+    }
+
+    private class SendMassgeHandler extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+            switch (msg.what) {
+                case HANDLER_EVENT_SEND_MSG_OUTPUT:
+//                    println((String)msg.obj);
+                    output.setText((String)msg.obj);
+                    break;
+                case HANDLER_EVENT_ACTION_MESSAGE:
+                    // TODO; 이벤트 정보를 받아서 화면에 영상을 출력할 때 사용...
+//                    println((String)msg.obj);
+//                    output.setText((String)msg.obj);
+                    String prevText = output.getText().toString() + "\n\n" + (String)msg.obj;
+                    output.setText(prevText);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     class ServerThread extends Thread {
-        Handler mHandler = new Handler();
+//        Handler mHandler = new Handler();
         private ServerSocket serverSocket;
+
         public ServerThread() throws IOException {
             serverSocket = new ServerSocket(PORT);
         }
@@ -182,14 +237,26 @@ public class MainActivity extends AppCompatActivity {
                     DataInputStream dis = new DataInputStream(i_stream);
 
                     String line = dis.readUTF();
-                    blockId = Integer.parseInt(line.substring(line.indexOf(",")+1));
+                    blockId = Integer.parseInt(line.substring(line.indexOf(",") + 1));
                     stateRule.insertBlock(blockId);
 
-                    mHandler.post(new Runnable() {
-                        public void run() {
-                            output.setText("console> 수신 blockId : " + blockId);
-                        }
-                    });
+                    Message msg = mMainHandler.obtainMessage();
+                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
+                    msg.obj = "console> 수신 blockId : " + blockId + "\n" + stateRule.getOutStr();
+                    mMainHandler.sendMessage(msg);
+
+                    msg = mMainHandler.obtainMessage();
+                    msg.what = HANDLER_EVENT_ACTION_MESSAGE;
+                    msg.obj = stateRule.getOutMsg();
+                    mMainHandler.sendMessage(msg);
+
+//                    mHandler.post(new Runnable() {
+//                        public void run() {
+//                            println("console> 수신 blockId : " + blockId);
+//                            println(stateRule.getOutStr());
+//                        }
+//                    });
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

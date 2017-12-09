@@ -100,6 +100,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="6dp"
         android:ems="10"
+        android:inputType="textMultiLine"
         android:text="output"
         android:textSize="20dp" />
 

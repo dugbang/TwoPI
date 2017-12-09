@@ -37,17 +37,18 @@ class StateRule {
 
     private ContentsPath contentsPath;
     private final ContentsFileList contentsFileList;
+    private String outStr;
+    private String outMsg;
 
     public StateRule(Context context) {
         actionTimeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
         actionLogList = new ArrayList<ActionLogData>();
-
         actionStack = new Stack();
 
         if (context == null)
             contentsPath = new PcContentsPath();
         else
-            contentsPath = new AndroidContentsPath(context, true);
+            contentsPath = new AndroidContentsPath(context, false);
 
         contentsFileList = new ContentsFileList(contentsPath);
 //        contentsFileList.dbg_output();
@@ -80,6 +81,7 @@ class StateRule {
         return "OK";
     }
 
+
     private void setNextActionIndex() {
         String nextPos = actionStep.get(actionIndex).nextPos;
         if (nextPos.length() == 3) {
@@ -91,8 +93,6 @@ class StateRule {
         } else if (nextPos.substring(0, 1).equals("B")) {
             actionIndex -= Integer.parseInt(nextPos.substring(1));
             if (actionIndex < 0) {
-//                StateRuleException e = new StateRuleException("콘텐츠 파일의 이동범위를 벋어났습니다.");
-//                e.msg = "콘텐츠 파일의 이동범위를 벋어났습니다.";
                 throw new StateRuleException("콘텐츠 파일의 이동범위를 벋어났습니다.");
             }
         } else {
@@ -118,6 +118,7 @@ class StateRule {
             }
             activeUserId = blockId;
             state = STATE_READY;
+            outStr = "";
             return true;
         }
         return false;
@@ -173,13 +174,18 @@ class StateRule {
         //System.out.println(actionInfo.actionTime + " > " + list_map.get(matchBaseIndex).get(actionInfo.actionNumber));
     }
 
+    public String getOutStr() {
+        return outStr;
+    }
+
     private void ContentsDisplay() {
         // TODO; 메인쪽에 이벤트로 발생되어야 함.
         int displayIndex = actionIndex + 1;
-        String outStr = ContentsData.fileName + "; " + displayIndex + " > "
+        outStr = ContentsData.fileName + "; " + displayIndex + " > "
                 + actionStep.get(actionIndex).desc
                 + ", nextPos; " + actionStep.get(actionIndex).nextPos;
         System.out.println(outStr);
+        outMsg = "contents play files; " + displayIndex;
     }
 
     public void setTimeOut() {
@@ -208,6 +214,10 @@ class StateRule {
 
     public int getState() {
         return state;
+    }
+
+    public String getOutMsg() {
+        return outMsg;
     }
 
     public String getFileName() {

@@ -45,8 +45,7 @@ public class SimpleSockterServer {
 //                System.out.println("console> 수신 response : " + dis.readUTF());
 
                 String line = dis.readUTF();
-                int pos = line.indexOf(",");
-                int blockId = Integer.parseInt(line.substring(pos+1));
+                int blockId = Integer.parseInt(line.substring(line.indexOf(",")+1));
 
                 System.out.println("blockId : " + blockId);
                 System.out.println(stateRule.insertBlock(blockId));
@@ -58,9 +57,4 @@ public class SimpleSockterServer {
             }
         }
     }
-
-//    private static String getTime() {
-//        SimpleDateFormat f = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
-//        return f.format(new Date());
-//    }
 }
