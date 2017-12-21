@@ -51,7 +51,6 @@ class StateRule {
             contentsPath = new AndroidContentsPath(context, false);
 
         contentsFileList = new ContentsFileList(contentsPath);
-//        contentsFileList.dbg_output();
     }
 
 
@@ -60,8 +59,11 @@ class StateRule {
         if (validUserIdBlock(blockId)) return "OK";
         if (isNonActive()) return "FAIL";
 
+
         if (isReady()) {
             loadContents(blockId);
+//            contentsFileList.dbg_output();
+//            contentsFileList.dbg_output();
         } else if (isContentsActive()) {
             saveBlcokId(blockId);
 
@@ -80,7 +82,6 @@ class StateRule {
         }
         return "OK";
     }
-
 
     private void setNextActionIndex() {
         String nextPos = actionStep.get(actionIndex).nextPos;

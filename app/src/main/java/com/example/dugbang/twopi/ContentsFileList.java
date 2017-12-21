@@ -59,10 +59,10 @@ class ContentsFileList {
 
     public List<ContentsData> LoadContents(int blockId) {
         String fileName = matchBlockId(blockId);
-        System.out.println("fileName: " + fileName);
+        System.out.println("baseBlockIdMap fileName; " + fileName);
 
         if (fileName != null)
-            return loadContentsFile(fileName);
+            return loadContentsCsvFile(fileName);
 
         fileName = serverBlockId.getFileName(blockId);
         if (fileName == null)
@@ -76,7 +76,7 @@ class ContentsFileList {
         for (int i = 0; i < BASE_FILE_LIST.length; i++) {
             String fileName = BASE_FILE_LIST[i];
             if (!contentsPath.validFileName(fileName)) {
-                System.out.println("Download fileName: " + fileName);
+                System.out.println("Download fileName; " + fileName);
                 serverDownload.download(serverBlockId.getServerDownloadUrl() + fileName, contentsPath.getRoot());
             }
         }
@@ -120,6 +120,7 @@ class ContentsFileList {
         String fileName = null;
         while (keySetIterator.hasNext()) {
             String key = keySetIterator.next();
+            System.out.println("Check fileName; " + key + " values; " + baseBlockIdMap.get(key));
             if (baseBlockIdMap.get(key).contains(blockId)) {
                 fileName = key;
                 break;
@@ -178,7 +179,7 @@ class ContentsFileList {
         Iterator<String> keySetIterator3 = getBlockIdSortIterator();
         while (keySetIterator3.hasNext()) {
             String key = keySetIterator3.next();
-            System.out.println("key: " + key + " value: " + baseBlockIdMap.get(key));
+            System.out.println("key; " + key + " value; " + baseBlockIdMap.get(key));
         }
 //        Iterator<Integer> keySetIterator = currentBlockIdDesc.keySet().iterator();
 //        while (keySetIterator.hasNext()) {
