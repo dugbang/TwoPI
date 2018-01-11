@@ -10,12 +10,17 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.InputDevice;
+import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -53,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
     private WebView lWebView;
 
+    private boolean webviewFlag;
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -72,11 +79,40 @@ public class MainActivity extends AppCompatActivity {
         bleReceiver = new BleReceiver(BluetoothAdapter.getDefaultAdapter());
 
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
-        macAddress = (EditText) findViewById(R.id.macAddress);
+//        macAddress = (EditText) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
         output.setMovementMethod(new ScrollingMovementMethod());
 
-        lWebView = (WebView)findViewById(R.id.webView);
+        webviewFlag = true;
+
+        lWebView = (WebView) findViewById(R.id.webView);
+        lWebView.setWebViewClient(new WebViewClient() {
+            public void onPageFinished(WebView view, String url) {
+                float x = view.getWidth() / 2;
+                float y = 2 * view.getHeight() / 3;
+                MotionEvent motionEventDown = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, x, y, 0.5f, 0.5f, 0, 0.5f, 0.5f, InputDevice.SOURCE_TOUCHSCREEN, 0);
+                MotionEvent motionEventUp = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 200, MotionEvent.ACTION_UP, x, y, 0.5f, 0.5f, 0, 0.5f, 0.5f, InputDevice.SOURCE_TOUCHSCREEN, 0);
+                view.dispatchTouchEvent(motionEventDown);
+                view.dispatchTouchEvent(motionEventUp);
+            }
+        });
+
+        final WebSettings settings = lWebView.getSettings();
+        settings.setJavaScriptEnabled(true);
+
+//        lWebView.setWebViewClient(new MyCustomWebViewClient());
+//        lWebView.setWebViewClient(new WebViewClient() {
+//            // autoplay when finished loading via javascript injection
+//            public void onPageFinished(WebView view, String url) { lWebView.loadUrl("javascript:(function() { document.getElementsByTagName('video')[0].play(); })()"); }
+//        });
+//        settings.setAppCacheEnabled(true);
+//        settings.setMediaPlaybackRequiresUserGesture(false);
+//        lWebView.mediaPlaybackRequiresUserAction =
+//        settings.setJavaScriptCanOpenWindowsAutomatically(true);
+//        lWebView.getSettings().setJavaScriptEnabled(true);
+//        lWebView.setMediaPlaybackRequiresUserGesture(false);
+//        lWebView.getSettings().setAppCacheEnabled(true);
+
 
         rg = (RadioGroup) findViewById(R.id.radioGroup1);
         rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -87,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
                     bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
                 } else {
                     bleFlag = true;
-                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
+//                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
+                    bleReceiver.setScanFilterOfMacAccress("FA:70:00:00:00:FA");
                     bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
                 }
             }
@@ -164,8 +201,15 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 output.setText("");
                 String path_str = stateRule.getRoot();
-                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
-                lWebView.getSettings().setJavaScriptEnabled(true);
+//                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
+
+                if (webviewFlag) {
+                    lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
+                    webviewFlag = false;
+                } else {
+                    lWebView.loadUrl("file:///" + path_str + "test_html_2/index.html");
+                    webviewFlag = true;
+                }
             }
         });
 
@@ -285,4 +329,12 @@ public class MainActivity extends AppCompatActivity {
 
         txt_ipAddress.setText(ipAddressStr);
     }
+
+//    private class MyCustomWebViewClient extends WebViewClient {
+//        @Override
+//        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//            view.loadUrl(url);
+//            return true;
+//        }
+//    }
 }
