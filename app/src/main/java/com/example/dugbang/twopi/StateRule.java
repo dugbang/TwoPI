@@ -225,4 +225,8 @@ class StateRule {
         String timeStr = actionTimeFormat.format(new Date());
         return String.format("0x%06X_%s_%s", activeUserId, timeStr, ContentsData.fileName);
     }
+
+    public String getRoot() {
+        return contentsPath.getRoot();
+    }
 }

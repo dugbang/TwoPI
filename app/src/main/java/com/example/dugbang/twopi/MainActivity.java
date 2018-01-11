@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private SendMassgeHandler mMainHandler;
     private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
+    private WebView lWebView;
 
     @Override
     protected void onDestroy() {
@@ -73,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
         macAddress = (EditText) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
         output.setMovementMethod(new ScrollingMovementMethod());
+
+        lWebView = (WebView)findViewById(R.id.webView);
 
         rg = (RadioGroup) findViewById(R.id.radioGroup1);
         rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -159,6 +163,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 output.setText("");
+                String path_str = stateRule.getRoot();
+                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
+                lWebView.getSettings().setJavaScriptEnabled(true);
             }
         });
 

@@ -17,6 +17,6 @@ public class MockServerBlockId implements ServerBlockId {
 
     @Override
     public String getServerDownloadUrl() {
-        return "http://192.168.0.40/2pi/";
+        return "http://192.168.0.228/2pi/";
     }
 }

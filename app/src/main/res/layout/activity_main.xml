@@ -95,7 +95,7 @@
     <TextView
         android:id="@+id/textView"
         android:layout_width="match_parent"
-        android:layout_height="331dp"
+        android:layout_height="90dp"
         android:layout_marginEnd="12dp"
         android:layout_marginStart="12dp"
         android:layout_marginTop="6dp"
@@ -103,6 +103,14 @@
         android:inputType="textMultiLine"
         android:text="output"
         android:textSize="20dp" />
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="363dp"
+        android:layout_height="240dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="6dp" />
 
     <LinearLayout
         android:layout_width="match_parent"

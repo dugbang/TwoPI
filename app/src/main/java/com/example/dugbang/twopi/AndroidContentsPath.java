@@ -1,6 +1,7 @@
 package com.example.dugbang.twopi;
 
 import android.content.Context;
+import android.os.Environment;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -16,7 +17,9 @@ public class AndroidContentsPath implements ContentsPath {
     private final String appRoot;
 
     public AndroidContentsPath(Context context, boolean deleteFlag) {
-        appRoot = context.getFilesDir().getAbsolutePath() + "/";
+//        appRoot = context.getFilesDir().getAbsolutePath() + "/";
+        appRoot = context.getExternalFilesDir(Environment.DIRECTORY_DCIM) + "/";
+        System.out.println("appRoot : " + appRoot);
         File file = new File(appRoot);
         if (file.exists())
             file.mkdirs();
@@ -24,6 +27,13 @@ public class AndroidContentsPath implements ContentsPath {
         if (deleteFlag) {
             deleteFiles(file);
         }
+
+        // ===============================
+//        appRoot = "/2PI/";
+//        file = new File(appRoot);
+//        if (file.exists()) {
+//            file.mkdirs();
+//        }
     }
 
     private void deleteFiles(File file) {
