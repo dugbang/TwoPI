@@ -275,6 +275,8 @@ public class MainActivity extends AppCompatActivity {
     class ServerThread extends Thread {
 //        Handler mHandler = new Handler();
         private ServerSocket serverSocket;
+        private String prevFileName = "";
+        private String fileName;
 
         public ServerThread() throws IOException {
             serverSocket = new ServerSocket(PORT);
@@ -300,8 +302,12 @@ public class MainActivity extends AppCompatActivity {
 
                     msg = mMainHandler.obtainMessage();
                     msg.what = HANDLER_EVENT_ACTION_MESSAGE;
-                    msg.obj = stateRule.getOutMsg();
-                    mMainHandler.sendMessage(msg);
+                    fileName = stateRule.getOutMsg();
+                    if (!fileName.equals(prevFileName)) {
+                        msg.obj = fileName;
+                        prevFileName = fileName;
+                        mMainHandler.sendMessage(msg);
+                    }
 
 //                    mHandler.post(new Runnable() {
 //                        public void run() {
