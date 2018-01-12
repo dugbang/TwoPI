@@ -27,6 +27,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -58,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
     private WebView lWebView;
 
-    private boolean webviewFlag;
+//    private boolean webviewFlag;
+//    private int count;
+//    private String old_path;
 
     @Override
     protected void onDestroy() {
@@ -82,8 +85,6 @@ public class MainActivity extends AppCompatActivity {
 //        macAddress = (EditText) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
         output.setMovementMethod(new ScrollingMovementMethod());
-
-        webviewFlag = true;
 
         lWebView = (WebView) findViewById(R.id.webView);
         lWebView.setWebViewClient(new WebViewClient() {
@@ -203,13 +204,7 @@ public class MainActivity extends AppCompatActivity {
                 String path_str = stateRule.getRoot();
 //                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
 
-                if (webviewFlag) {
-                    lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
-                    webviewFlag = false;
-                } else {
-                    lWebView.loadUrl("file:///" + path_str + "test_html_2/index.html");
-                    webviewFlag = true;
-                }
+                lWebView.loadUrl("file:///" + path_str + "/index.html");
             }
         });
 
@@ -259,10 +254,17 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case HANDLER_EVENT_ACTION_MESSAGE:
                     // TODO; 이벤트 정보를 받아서 화면에 영상을 출력할 때 사용...
-//                    println((String)msg.obj);
-//                    output.setText((String)msg.obj);
-                    String prevText = output.getText().toString() + "\n\n" + (String)msg.obj;
+                    String dir_path = (String)msg.obj;
+
+                    String prevText = output.getText().toString() + "\n\n" + dir_path;
                     output.setText(prevText);
+
+                    String path_str = stateRule.getRoot();
+                    File f = new File(path_str + dir_path + "/index.html");
+                    if (f.isFile()) {
+                        lWebView.loadUrl("file:///" + path_str + dir_path + "/index.html");
+                    }
+//                    old_path = dir_path;
                     break;
                 default:
                     break;

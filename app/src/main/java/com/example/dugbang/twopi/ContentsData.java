@@ -14,6 +14,6 @@ class ContentsData {
     public String nextPos;
 
     public String getBackgroundImage() {
-        return String.format("..._%02d_%02d", sceneId, questId);
+        return String.format("DIR; %s", desc);
     }
 }

@@ -73,7 +73,9 @@ class StateRule {
                     actionIndex = (int) actionStack.pop();
             } else {
                 actionStack.push(actionIndex);
-                setNextActionIndex();
+                if (blockId == 2) {
+                    setNextActionIndex();
+                }
             }
             if (actionStep.size() <= actionIndex)
                 endOfContents();
@@ -186,7 +188,7 @@ class StateRule {
                 + actionStep.get(actionIndex).desc
                 + ", nextPos; " + actionStep.get(actionIndex).nextPos;
         System.out.println(outStr);
-        outMsg = "contents play files; " + displayIndex;
+        outMsg = actionStep.get(actionIndex).desc;
     }
 
     public void setTimeOut() {
