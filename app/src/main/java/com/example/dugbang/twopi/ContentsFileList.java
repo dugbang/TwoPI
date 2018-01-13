@@ -187,4 +187,8 @@ class ContentsFileList {
 //            System.out.println("key: " + key + " value: " + currentBlockIdDesc.get(key));
 //        }
     }
+
+    public String getBlockName(int blockId) {
+        return baseBlockIdDesc.get(blockId);
+    }
 }

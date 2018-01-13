@@ -22,7 +22,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -40,20 +39,21 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView output;
     private TextView txt_ipAddress;
+    private TextView macAddress;
+
     private ServerThread thread;
     private int blockId;
     private StateRule stateRule;
     private RadioGroup rg;
     private boolean bleFlag = false;
+
     private int mMajor;
-
     private int mMinor;
-    BleReceiver bleReceiver;
 
+    BleReceiver bleReceiver;
     private static final int PERMISSIONS = 100;
     ScanCallback mScanCallback;
     String strScanResult;
-    private EditText macAddress;
     private SendMassgeHandler mMainHandler;
     private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
@@ -82,7 +82,7 @@ public class MainActivity extends AppCompatActivity {
         bleReceiver = new BleReceiver(BluetoothAdapter.getDefaultAdapter());
 
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
-//        macAddress = (EditText) findViewById(R.id.macAddress);
+        macAddress = (TextView) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
         output.setMovementMethod(new ScrollingMovementMethod());
 
@@ -124,8 +124,8 @@ public class MainActivity extends AppCompatActivity {
                     bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
                 } else {
                     bleFlag = true;
-//                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
-                    bleReceiver.setScanFilterOfMacAccress("FA:70:00:00:00:FA");
+                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
+//                    bleReceiver.setScanFilterOfMacAccress("FA:70:00:00:00:FA");
                     bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
                 }
             }
@@ -201,10 +201,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 output.setText("");
-                String path_str = stateRule.getRoot();
+//                String path_str = stateRule.getRoot();
 //                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
-
-                lWebView.loadUrl("file:///" + path_str + "/index.html");
+//                lWebView.loadUrl("file:///" + path_str + "/index.html");
             }
         });
 
@@ -213,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // TODO; 업로드 프로세스 구현...
-                output.setText("upload process 구현하기...");
+                output.setText("자동저장 기능으로 구현됨...");
             }
         });
 
@@ -264,7 +263,6 @@ public class MainActivity extends AppCompatActivity {
                     if (f.isFile()) {
                         lWebView.loadUrl("file:///" + path_str + dir_path + "/index.html");
                     }
-//                    old_path = dir_path;
                     break;
                 default:
                     break;
@@ -273,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     class ServerThread extends Thread {
-//        Handler mHandler = new Handler();
         private ServerSocket serverSocket;
         private String prevFileName = "";
         private String fileName;
@@ -297,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Message msg = mMainHandler.obtainMessage();
                     msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
-                    msg.obj = "console> 수신 blockId : " + blockId + "\n" + stateRule.getOutStr();
+                    msg.obj = "수신 block ID : " + blockId + "\n" + stateRule.getOutStr();
                     mMainHandler.sendMessage(msg);
 
                     msg = mMainHandler.obtainMessage();
@@ -308,13 +305,6 @@ public class MainActivity extends AppCompatActivity {
                         prevFileName = fileName;
                         mMainHandler.sendMessage(msg);
                     }
-
-//                    mHandler.post(new Runnable() {
-//                        public void run() {
-//                            println("console> 수신 blockId : " + blockId);
-//                            println(stateRule.getOutStr());
-//                        }
-//                    });
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -337,12 +327,4 @@ public class MainActivity extends AppCompatActivity {
 
         txt_ipAddress.setText(ipAddressStr);
     }
-
-//    private class MyCustomWebViewClient extends WebViewClient {
-//        @Override
-//        public boolean shouldOverrideUrlLoading(WebView view, String url) {
-//            view.loadUrl(url);
-//            return true;
-//        }
-//    }
 }

@@ -62,8 +62,6 @@ class StateRule {
 
         if (isReady()) {
             loadContents(blockId);
-//            contentsFileList.dbg_output();
-//            contentsFileList.dbg_output();
         } else if (isContentsActive()) {
             saveBlcokId(blockId);
 
@@ -80,7 +78,7 @@ class StateRule {
             if (actionStep.size() <= actionIndex)
                 endOfContents();
             else
-                ContentsDisplay();
+                ContentsDisplay(blockId);
         }
         return "OK";
     }
@@ -110,7 +108,7 @@ class StateRule {
             actionIndex = 0;
             state = STATE_STORY_ACTIVE;
 
-            ContentsDisplay();
+            ContentsDisplay(blockId);
         }
     }
 
@@ -181,12 +179,13 @@ class StateRule {
         return outStr;
     }
 
-    private void ContentsDisplay() {
+    private void ContentsDisplay(int blockId) {
         // TODO; 메인쪽에 이벤트로 발생되어야 함.
         int displayIndex = actionIndex + 1;
-        outStr = ContentsData.fileName + "; " + displayIndex + " > "
-                + actionStep.get(actionIndex).desc
-                + ", nextPos; " + actionStep.get(actionIndex).nextPos;
+//        outStr = ContentsData.fileName + "; " + displayIndex + " > "
+//                + actionStep.get(actionIndex).desc
+//                + ", nextPos; " + actionStep.get(actionIndex).nextPos;
+        outStr = "스마트블록; " + contentsFileList.getBlockName(blockId);
         System.out.println(outStr);
         outMsg = actionStep.get(actionIndex).desc;
     }
