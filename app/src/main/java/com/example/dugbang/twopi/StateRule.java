@@ -38,7 +38,7 @@ class StateRule {
     private ContentsPath contentsPath;
     private final ContentsFileList contentsFileList;
     private String outStr;
-    private String outMsg;
+    private String outMsg = new String();
 
     public StateRule(Context context) {
         actionTimeFormat = new SimpleDateFormat("yyyyMMdd_HH.mm.ss");
@@ -181,7 +181,7 @@ class StateRule {
 
     private void ContentsDisplay(int blockId) {
         // TODO; 메인쪽에 이벤트로 발생되어야 함.
-        int displayIndex = actionIndex + 1;
+//        int displayIndex = actionIndex + 1;
 //        outStr = ContentsData.fileName + "; " + displayIndex + " > "
 //                + actionStep.get(actionIndex).desc
 //                + ", nextPos; " + actionStep.get(actionIndex).nextPos;

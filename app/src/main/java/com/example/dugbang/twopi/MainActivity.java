@@ -22,6 +22,8 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.example.dugbang.twopi.SimpleSockterServer.PORT;
@@ -39,35 +42,42 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView output;
     private TextView txt_ipAddress;
-    private TextView macAddress;
+    private EditText macAddress;
 
-    private ServerThread thread;
+    private RadioButton rb_bleOn;
+    private RadioButton rb_bleOff;
+
     private int blockId;
     private StateRule stateRule;
     private RadioGroup rg;
     private boolean bleFlag = false;
-
     private int mMajor;
-    private int mMinor;
 
+    private int mMinor;
     BleReceiver bleReceiver;
+
     private static final int PERMISSIONS = 100;
     ScanCallback mScanCallback;
     String strScanResult;
     private SendMassgeHandler mMainHandler;
     private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
+
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
+    private static final int HANDLER_EVENT_BLOCK_ID_BLE = 2;
+    private static final int HANDLER_EVENT_BLOCK_ID_SOCKET = 3;
+    private static final int HANDLER_EVENT_BLE_ON = 4;
     private WebView lWebView;
 
-//    private boolean webviewFlag;
-//    private int count;
-//    private String old_path;
+    private HashMap<Integer, String> mappingNFC;
+
+    private BleTimer bleTimer;
+    private ServerThread thread;
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (bleFlag == true) {
-            bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+            BleOff();
         }
     }
 
@@ -82,17 +92,25 @@ public class MainActivity extends AppCompatActivity {
         bleReceiver = new BleReceiver(BluetoothAdapter.getDefaultAdapter());
 
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
-        macAddress = (TextView) findViewById(R.id.macAddress);
+        macAddress = (EditText) findViewById(R.id.macAddress);
         output = (TextView) findViewById(R.id.textView);
         output.setMovementMethod(new ScrollingMovementMethod());
+
+        rb_bleOn = (RadioButton) findViewById(R.id.bleOn);
+        rb_bleOff = (RadioButton) findViewById(R.id.bleOff);
+
+        stateRule = new StateRule(getApplicationContext());
+        mMainHandler = new SendMassgeHandler();
 
         lWebView = (WebView) findViewById(R.id.webView);
         lWebView.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
                 float x = view.getWidth() / 2;
                 float y = 2 * view.getHeight() / 3;
+
                 MotionEvent motionEventDown = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, x, y, 0.5f, 0.5f, 0, 0.5f, 0.5f, InputDevice.SOURCE_TOUCHSCREEN, 0);
                 MotionEvent motionEventUp = MotionEvent.obtain(SystemClock.uptimeMillis(), SystemClock.uptimeMillis() + 200, MotionEvent.ACTION_UP, x, y, 0.5f, 0.5f, 0, 0.5f, 0.5f, InputDevice.SOURCE_TOUCHSCREEN, 0);
+
                 view.dispatchTouchEvent(motionEventDown);
                 view.dispatchTouchEvent(motionEventUp);
             }
@@ -101,35 +119,45 @@ public class MainActivity extends AppCompatActivity {
         final WebSettings settings = lWebView.getSettings();
         settings.setJavaScriptEnabled(true);
 
-//        lWebView.setWebViewClient(new MyCustomWebViewClient());
-//        lWebView.setWebViewClient(new WebViewClient() {
-//            // autoplay when finished loading via javascript injection
-//            public void onPageFinished(WebView view, String url) { lWebView.loadUrl("javascript:(function() { document.getElementsByTagName('video')[0].play(); })()"); }
-//        });
-//        settings.setAppCacheEnabled(true);
-//        settings.setMediaPlaybackRequiresUserGesture(false);
-//        lWebView.mediaPlaybackRequiresUserAction =
-//        settings.setJavaScriptCanOpenWindowsAutomatically(true);
-//        lWebView.getSettings().setJavaScriptEnabled(true);
-//        lWebView.setMediaPlaybackRequiresUserGesture(false);
-//        lWebView.getSettings().setAppCacheEnabled(true);
-
-
         rg = (RadioGroup) findViewById(R.id.radioGroup1);
         rg.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.bleOff) {
-                    bleFlag = false;
-                    bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+                    BleOff();
                 } else {
-                    bleFlag = true;
-                    bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString());
-//                    bleReceiver.setScanFilterOfMacAccress("FA:70:00:00:00:FA");
-                    bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
+                    BleOn();
                 }
             }
         });
+
+        // ========================================================
+        // NFC mapping; 임시적으로 사용하는 것임...
+        mappingNFC = new HashMap<Integer, String>();
+        mappingNFC.put(560, "사용자 1");  // 사용자 1
+        mappingNFC.put(561, "사용자 2");  // 사용자 2
+        mappingNFC.put(559, "NEXT"); // NEXT
+        mappingNFC.put(614, "NEXT"); // NEXT
+        mappingNFC.put(100, "BACK"); // BACK
+
+        mappingNFC.put(100, "0");   // 0
+        mappingNFC.put(567, "1");   // 1
+        mappingNFC.put(721, "2");   // 2
+        mappingNFC.put(571, "3");   // 3
+
+        mappingNFC.put(562, "삼각형");   // 삼각형
+        mappingNFC.put(708, "마름모");   // 마름모
+        mappingNFC.put(564, "원");   // 원
+        mappingNFC.put(100, "별");   // 별
+
+        mappingNFC.put(717, "E");   // E
+        mappingNFC.put(712, "L");   // L
+        mappingNFC.put(569, "O");   // O
+        mappingNFC.put(707, "P");   // P
+
+        mappingNFC.put(710, "주관식 1");   // 주관식 1
+        mappingNFC.put(100, "주관식 2");   // 주관식 2
+        // ========================================================
 
         mScanCallback = new ScanCallback() {
             @Override
@@ -147,36 +175,26 @@ public class MainActivity extends AppCompatActivity {
                             + "\n" + result.getDevice().getType();
                     Log.d("onScanResult()", strScanResult);
 
+//                    msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+//                    blockId = mappingNFC.get((scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff));
+
                     mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
                     mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
 
-                    Message msg = mMainHandler.obtainMessage();
-                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
-                    msg.obj = "onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n";
-                    mMainHandler.sendMessage(msg);
+//                    Message msg = mMainHandler.obtainMessage();
+//                    msg.obj = "onScanResult; \n" + strScanResult + "\n" + mMajor + "\t" + mMinor + "\n";
 
-                    // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
 //                    blockId = (scanData[26] & 0xff) * 0x10000
 //                            + (scanData[27] & 0xff) * 0x100
 //                            + (scanData[28] & 0xff);
-//                    stateRule.insertBlock(blockId);
-//
-//                    msg = mMainHandler.obtainMessage();
-//                    msg.what = HANDLER_EVENT_ACTION_MESSAGE;
-//                    msg.obj = stateRule.getOutMsg();
-//                    mMainHandler.sendMessage(msg);
 
-//                    new Thread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    output.setText("onScanResult; \n" + strScanResult + "\n" + mMajor + "\n" + mMinor + "\n");
-//                                }
-//                            });
-//                        }
-//                    }).start();
+                    // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
+                    blockId = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+//                    stateRule.insertBlock(mappingNFC.get(blockId));
+                    Message msg = mMainHandler.obtainMessage();
+                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
+                    msg.obj = "수신 block ID : " + mappingNFC.get(blockId) + "\nReal Value; " + mMajor + "\t" + mMinor + "\n";
+                    mMainHandler.sendMessage(msg);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -200,10 +218,9 @@ public class MainActivity extends AppCompatActivity {
         clearButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                output.setText("");
-//                String path_str = stateRule.getRoot();
-//                lWebView.loadUrl("file:///" + path_str + "test_html/index.html");
-//                lWebView.loadUrl("file:///" + path_str + "/index.html");
+                output.setText(macAddress.getText().toString().replace(".", ":"));
+//                rb_bleOn.performClick();
+//                BleOn();
             }
         });
 
@@ -213,53 +230,77 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // TODO; 업로드 프로세스 구현...
                 output.setText("자동저장 기능으로 구현됨...");
+//                rb_bleOff.performClick();
+//                BleOff();
             }
         });
-
-        stateRule = new StateRule(getApplicationContext());
-        mMainHandler = new SendMassgeHandler();
 
         getLocalIpAddress();
         try {
             thread = new ServerThread();
             thread.start();
             println("서비스가 시작되었습니다.\n");
+
+            bleTimer = new BleTimer();
+            bleTimer.start();
         } catch (IOException e) {
             println("Server Thread를 시작하지 못했습니다." + e.toString());
         }
     }
 
+    private void BleOn() {
+        bleFlag = true;
+        bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString().replace(".", ":"));
+        bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
+    }
+
+    private void BleOff() {
+        bleFlag = false;
+        bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+    }
+
     private void println(String outputText) {
         String prevText = output.getText().toString() + "\n" + outputText;
         output.setText(prevText);
-//        int lineTop =  output.getLayout().getLineTop(output.getLineCount()) ;
-//        int scrollY = lineTop - output.getHeight();
-//        if (scrollY > 0) {
-//            output.scrollTo(0, scrollY);
-//        } else {
-//            output.scrollTo(0, 0);
-//        }
     }
 
     private class SendMassgeHandler extends Handler {
+        private String prevFileName = "";
+        private String fileName;
+        private String path_str;
+
+        private File f;
+
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
+//            int blockId;
             switch (msg.what) {
+                case HANDLER_EVENT_BLE_ON:
+//                    BleOn();
+                    rb_bleOn.performClick();
+                    System.out.println("rb_bleOn.performClick()");
+                    break;
+                case HANDLER_EVENT_BLOCK_ID_BLE:
+//                    ActionBlockId();  // 인식할 수 없는 BlockId 입력시 대응...?
+//                    BleOff();
+                    rb_bleOff.performClick();
+                    System.out.println("rb_bleOff.performClick()");
+                    break;
+                case HANDLER_EVENT_BLOCK_ID_SOCKET:
+                    ActionBlockId();
+                    break;
                 case HANDLER_EVENT_SEND_MSG_OUTPUT:
-//                    println((String)msg.obj);
-                    output.setText((String)msg.obj);
+                    rb_bleOff.performClick();
+                    output.setText((String) msg.obj);
                     break;
                 case HANDLER_EVENT_ACTION_MESSAGE:
                     // TODO; 이벤트 정보를 받아서 화면에 영상을 출력할 때 사용...
-                    String dir_path = (String)msg.obj;
-
-                    String prevText = output.getText().toString() + "\n\n" + dir_path;
-                    output.setText(prevText);
-
-                    String path_str = stateRule.getRoot();
-                    File f = new File(path_str + dir_path + "/index.html");
+                    String dir_path = (String) msg.obj;
+                    output.setText(output.getText().toString() + "\n\n" + dir_path);
+                    path_str = stateRule.getRoot();
+                    f = new File(path_str + dir_path + "/index.html");
                     if (f.isFile()) {
                         lWebView.loadUrl("file:///" + path_str + dir_path + "/index.html");
                     }
@@ -268,12 +309,51 @@ public class MainActivity extends AppCompatActivity {
                     break;
             }
         }
+        private void ActionBlockId() {
+            stateRule.insertBlock(blockId);
+            fileName = stateRule.getOutMsg();
+            if (!fileName.equals(prevFileName)) {
+                prevFileName = fileName;
+
+                path_str = stateRule.getRoot();
+                f = new File(path_str + fileName + "/index.html");
+                if (f.isFile()) {
+                    lWebView.loadUrl("file:///" + path_str + fileName + "/index.html");
+                }
+            }
+            output.setText("수신 block ID : " + blockId + "\n" +
+                    stateRule.getOutStr() + "\n\n" + fileName);
+        }
+    }
+
+    class BleTimer extends Thread {
+
+        @Override
+        public void run() {
+            while (true) {
+                DelayTime(500);
+
+                if (bleFlag==false) {
+                    DelayTime(5000);
+
+                    Message msg = mMainHandler.obtainMessage();
+                    msg.what = HANDLER_EVENT_BLE_ON;
+                    mMainHandler.sendMessage(msg);
+                }
+            }
+        }
+
+        private void DelayTime(int millis) {
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     class ServerThread extends Thread {
         private ServerSocket serverSocket;
-        private String prevFileName = "";
-        private String fileName;
 
         public ServerThread() throws IOException {
             serverSocket = new ServerSocket(PORT);
@@ -281,7 +361,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            while(true) {
+            while (true) {
                 try {
                     Socket socket = serverSocket.accept();
 
@@ -290,22 +370,12 @@ public class MainActivity extends AppCompatActivity {
 
                     String line = dis.readUTF();
                     blockId = Integer.parseInt(line.substring(line.indexOf(",") + 1));
-                    stateRule.insertBlock(blockId);
+//                    stateRule.insertBlock(blockId);
 
                     Message msg = mMainHandler.obtainMessage();
-                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
-                    msg.obj = "수신 block ID : " + blockId + "\n" + stateRule.getOutStr();
+                    msg.what = HANDLER_EVENT_BLOCK_ID_SOCKET;
+//                    msg.obj = blockId;
                     mMainHandler.sendMessage(msg);
-
-                    msg = mMainHandler.obtainMessage();
-                    msg.what = HANDLER_EVENT_ACTION_MESSAGE;
-                    fileName = stateRule.getOutMsg();
-                    if (!fileName.equals(prevFileName)) {
-                        msg.obj = fileName;
-                        prevFileName = fileName;
-                        mMainHandler.sendMessage(msg);
-                    }
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -315,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void getLocalIpAddress() {
         WifiManager wm = (WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE);
-        DhcpInfo dhcpInfo = wm.getDhcpInfo() ;
+        DhcpInfo dhcpInfo = wm.getDhcpInfo();
         int serverIp = dhcpInfo.ipAddress;
 
         String ipAddressStr = String.format(
