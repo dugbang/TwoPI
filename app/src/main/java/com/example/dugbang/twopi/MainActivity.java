@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView lWebView;
 
     private HashMap<Integer, String> mappingNFC;
-//    private HashMap<Integer, Integer> mappingNFCtoBlockId;
+    private HashMap<Integer, Integer> mappingNFCtoBlockId;
 
     private BleTimer bleTimer;
     private ServerThread thread;
@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
         // ========================================================
         // NFC mapping; 임시적으로 사용하는 것임...
-//        mappingNFCtoBlockId = new HashMap<Integer, Integer>();
+        mappingNFCtoBlockId = new HashMap<Integer, Integer>();
 
         mappingNFC = new HashMap<Integer, String>();
         mappingNFC.put(560, "사용자 1");  // 사용자 1
@@ -149,20 +149,20 @@ public class MainActivity extends AppCompatActivity {
         mappingNFC.put(614, "NEXT"); // NEXT
         mappingNFC.put(100, "BACK"); // BACK
 
-//        mappingNFCtoBlockId.put(560, 0xFFFFFF);
-//        mappingNFCtoBlockId.put(561, 0xFFFFFF);
-//        mappingNFCtoBlockId.put(559, 2);
-//        mappingNFCtoBlockId.put(614, 2);
-//        mappingNFCtoBlockId.put(100, 3);
+        mappingNFCtoBlockId.put(560, 0xFFFFFF);
+        mappingNFCtoBlockId.put(561, 0xFFFFFF);
+        mappingNFCtoBlockId.put(559, 2);
+        mappingNFCtoBlockId.put(614, 2);
+        mappingNFCtoBlockId.put(100, 3);
 
         mappingNFC.put(100, "0");   // 0
         mappingNFC.put(567, "1");   // 1
         mappingNFC.put(721, "2");   // 2
         mappingNFC.put(571, "3");   // 3
 
-//        mappingNFCtoBlockId.put(567, 2);    // 1
-//        mappingNFCtoBlockId.put(721, 2);    // 2
-//        mappingNFCtoBlockId.put(571, 2);    // 3
+        mappingNFCtoBlockId.put(567, 2);    // 1
+        mappingNFCtoBlockId.put(721, 2);    // 2
+        mappingNFCtoBlockId.put(571, 2);    // 3
 
         mappingNFC.put(562, "삼각형");   // 삼각형
         mappingNFC.put(708, "마름모");   // 마름모
@@ -209,17 +209,10 @@ public class MainActivity extends AppCompatActivity {
                     Message msg = mMainHandler.obtainMessage();
                     // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
 //                    blockId = mappingNFCtoBlockId.get(mMinor);
-                    blockId = mMinor;
+//                    blockId = mMinor;
                     msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                    msg.obj = mappingNFCtoBlockId.get(mMinor);
                     mMainHandler.sendMessage(msg);
-
-//                    stateRule.insertBlock(mappingNFC.get(blockId));
-//                    Message msg = mMainHandler.obtainMessage();
-                    msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
-                    msg.obj = "수신 block ID : " + mappingNFC.get(blockId) +
-                              "\nReal Value; " + mMajor + "\t" + mMinor;
-                    mMainHandler.sendMessage(msg);
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -243,9 +236,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                txt_output.setText(edit_macAddress.getText().toString().replace(".", ":"));
-                blockId = 0xfffffe;
+//                blockId = 0xfffffe;
                 Message msg = mMainHandler.obtainMessage();
                 msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                msg.obj = 0xfffffe;
                 mMainHandler.sendMessage(msg);
             }
         });
@@ -255,9 +249,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                txt_output.setText("자동저장 기능으로 구현됨...");
-                blockId = 3;
+//                blockId = 3;
                 Message msg = mMainHandler.obtainMessage();
                 msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                msg.obj = 3;
                 mMainHandler.sendMessage(msg);
             }
         });
@@ -267,9 +262,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 //                txt_output.setText("자동저장 기능으로 구현됨...");
-                blockId = 2;
+//                blockId = 2;
                 Message msg = mMainHandler.obtainMessage();
                 msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                msg.obj = 2;
                 mMainHandler.sendMessage(msg);
             }
         });
@@ -324,10 +320,13 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("rb_bleOn.performClick()");
                     break;
                 case HANDLER_EVENT_BLOCK_ID_BLE:
-                    ActionBlockId();  // 인식할 수 없는 BlockId 입력시 대응...?
-                    rb_bleOff.performClick();
+                    if (msg.obj!=null) {
+                        blockId = (Integer) msg.obj;
+                        ActionBlockId();  // 인식할 수 없는 BlockId 입력시 대응...?
+                        rb_bleOff.performClick();
 //                    BleOff();
-                    System.out.println("rb_bleOff.performClick()");
+                        System.out.println("rb_bleOff.performClick()");
+                    }
                     break;
                 case HANDLER_EVENT_BLOCK_ID_SOCKET:
                     ActionBlockId();
