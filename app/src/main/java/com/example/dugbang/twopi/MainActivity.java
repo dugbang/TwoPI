@@ -40,36 +40,39 @@ import static com.example.dugbang.twopi.SimpleSockterServer.PORT;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView output;
+    private TextView txt_output;
     private TextView txt_ipAddress;
-    private EditText macAddress;
 
-    private RadioButton rb_bleOn;
+    private EditText edit_macAddress;
+    private EditText edit_bleSleepDuration;
+    private int bleSleepDuration;
+
     private RadioButton rb_bleOff;
+    private RadioButton rb_bleOn;
 
     private int blockId;
     private StateRule stateRule;
     private RadioGroup rg;
     private boolean bleFlag = false;
+
     private int mMajor;
-
     private int mMinor;
-    BleReceiver bleReceiver;
 
+    BleReceiver bleReceiver;
     private static final int PERMISSIONS = 100;
     ScanCallback mScanCallback;
     String strScanResult;
     private SendMassgeHandler mMainHandler;
-    private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
 
+    private static final int HANDLER_EVENT_SEND_MSG_OUTPUT = 0;
     private static final int HANDLER_EVENT_ACTION_MESSAGE = 1;
     private static final int HANDLER_EVENT_BLOCK_ID_BLE = 2;
     private static final int HANDLER_EVENT_BLOCK_ID_SOCKET = 3;
     private static final int HANDLER_EVENT_BLE_ON = 4;
+
     private WebView lWebView;
 
     private HashMap<Integer, String> mappingNFC;
-
     private BleTimer bleTimer;
     private ServerThread thread;
 
@@ -92,9 +95,11 @@ public class MainActivity extends AppCompatActivity {
         bleReceiver = new BleReceiver(BluetoothAdapter.getDefaultAdapter());
 
         txt_ipAddress = (TextView) findViewById(R.id.ipAddress);
-        macAddress = (EditText) findViewById(R.id.macAddress);
-        output = (TextView) findViewById(R.id.textView);
-        output.setMovementMethod(new ScrollingMovementMethod());
+        edit_macAddress = (EditText) findViewById(R.id.macAddress);
+        edit_bleSleepDuration = (EditText) findViewById(R.id.bleSleepDuration);
+
+        txt_output = (TextView) findViewById(R.id.textView);
+        txt_output.setMovementMethod(new ScrollingMovementMethod());
 
         rb_bleOn = (RadioButton) findViewById(R.id.bleOn);
         rb_bleOff = (RadioButton) findViewById(R.id.bleOff);
@@ -214,24 +219,39 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        Button clearButton = (Button) findViewById(R.id.clear);
-        clearButton.setOnClickListener(new View.OnClickListener() {
+        Button userButton = (Button) findViewById(R.id.blockid_user);
+        userButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                output.setText(macAddress.getText().toString().replace(".", ":"));
-//                rb_bleOn.performClick();
-//                BleOn();
+//                txt_output.setText(edit_macAddress.getText().toString().replace(".", ":"));
+                blockId = 0xfffffe;
+                Message msg = mMainHandler.obtainMessage();
+                msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                mMainHandler.sendMessage(msg);
             }
         });
 
-        Button logUploadButton = (Button) findViewById(R.id.logUpload);
-        logUploadButton.setOnClickListener(new View.OnClickListener() {
+        Button backButton = (Button) findViewById(R.id.blockid_back);
+        backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO; 업로드 프로세스 구현...
-                output.setText("자동저장 기능으로 구현됨...");
-//                rb_bleOff.performClick();
-//                BleOff();
+//                txt_output.setText("자동저장 기능으로 구현됨...");
+                blockId = 3;
+                Message msg = mMainHandler.obtainMessage();
+                msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                mMainHandler.sendMessage(msg);
+            }
+        });
+
+        Button nextButton = (Button) findViewById(R.id.blockid_next);
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                txt_output.setText("자동저장 기능으로 구현됨...");
+                blockId = 2;
+                Message msg = mMainHandler.obtainMessage();
+                msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                mMainHandler.sendMessage(msg);
             }
         });
 
@@ -250,18 +270,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void BleOn() {
         bleFlag = true;
-        bleReceiver.setScanFilterOfMacAccress(macAddress.getText().toString().replace(".", ":"));
+        bleReceiver.setScanFilterOfMacAccress(edit_macAddress.getText().toString().replace(".", ":"));
         bleReceiver.mBluetoothLeScanner.startScan(bleReceiver.scanFilters, bleReceiver.getScanSettings(), mScanCallback);
     }
 
     private void BleOff() {
         bleFlag = false;
         bleReceiver.mBluetoothLeScanner.stopScan(mScanCallback);
+
+        bleSleepDuration = Integer.parseInt(String.valueOf(edit_bleSleepDuration.getText()));
     }
 
     private void println(String outputText) {
-        String prevText = output.getText().toString() + "\n" + outputText;
-        output.setText(prevText);
+        String prevText = txt_output.getText().toString() + "\n" + outputText;
+        txt_output.setText(prevText);
     }
 
     private class SendMassgeHandler extends Handler {
@@ -283,9 +305,9 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("rb_bleOn.performClick()");
                     break;
                 case HANDLER_EVENT_BLOCK_ID_BLE:
-//                    ActionBlockId();  // 인식할 수 없는 BlockId 입력시 대응...?
-//                    BleOff();
+                    ActionBlockId();  // 인식할 수 없는 BlockId 입력시 대응...?
                     rb_bleOff.performClick();
+//                    BleOff();
                     System.out.println("rb_bleOff.performClick()");
                     break;
                 case HANDLER_EVENT_BLOCK_ID_SOCKET:
@@ -293,12 +315,12 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case HANDLER_EVENT_SEND_MSG_OUTPUT:
                     rb_bleOff.performClick();
-                    output.setText((String) msg.obj);
+                    txt_output.setText((String) msg.obj);
                     break;
                 case HANDLER_EVENT_ACTION_MESSAGE:
                     // TODO; 이벤트 정보를 받아서 화면에 영상을 출력할 때 사용...
                     String dir_path = (String) msg.obj;
-                    output.setText(output.getText().toString() + "\n\n" + dir_path);
+                    txt_output.setText(txt_output.getText().toString() + "\n\n" + dir_path);
                     path_str = stateRule.getRoot();
                     f = new File(path_str + dir_path + "/index.html");
                     if (f.isFile()) {
@@ -321,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
                     lWebView.loadUrl("file:///" + path_str + fileName + "/index.html");
                 }
             }
-            output.setText("수신 block ID : " + blockId + "\n" +
+            txt_output.setText("수신 block ID : " + blockId + "\n" +
                     stateRule.getOutStr() + "\n\n" + fileName);
         }
     }
@@ -331,10 +353,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             while (true) {
-                DelayTime(500);
+                DelayTime(200);
 
                 if (bleFlag==false) {
-                    DelayTime(5000);
+                    DelayTime(bleSleepDuration);
 
                     Message msg = mMainHandler.obtainMessage();
                     msg.what = HANDLER_EVENT_BLE_ON;
