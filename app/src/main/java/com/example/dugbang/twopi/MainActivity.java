@@ -73,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
     private WebView lWebView;
 
     private HashMap<Integer, String> mappingNFC;
+//    private HashMap<Integer, Integer> mappingNFCtoBlockId;
+
     private BleTimer bleTimer;
     private ServerThread thread;
 
@@ -138,6 +140,8 @@ public class MainActivity extends AppCompatActivity {
 
         // ========================================================
         // NFC mapping; 임시적으로 사용하는 것임...
+//        mappingNFCtoBlockId = new HashMap<Integer, Integer>();
+
         mappingNFC = new HashMap<Integer, String>();
         mappingNFC.put(560, "사용자 1");  // 사용자 1
         mappingNFC.put(561, "사용자 2");  // 사용자 2
@@ -145,10 +149,20 @@ public class MainActivity extends AppCompatActivity {
         mappingNFC.put(614, "NEXT"); // NEXT
         mappingNFC.put(100, "BACK"); // BACK
 
+//        mappingNFCtoBlockId.put(560, 0xFFFFFF);
+//        mappingNFCtoBlockId.put(561, 0xFFFFFF);
+//        mappingNFCtoBlockId.put(559, 2);
+//        mappingNFCtoBlockId.put(614, 2);
+//        mappingNFCtoBlockId.put(100, 3);
+
         mappingNFC.put(100, "0");   // 0
         mappingNFC.put(567, "1");   // 1
         mappingNFC.put(721, "2");   // 2
         mappingNFC.put(571, "3");   // 3
+
+//        mappingNFCtoBlockId.put(567, 2);    // 1
+//        mappingNFCtoBlockId.put(721, 2);    // 2
+//        mappingNFCtoBlockId.put(571, 2);    // 3
 
         mappingNFC.put(562, "삼각형");   // 삼각형
         mappingNFC.put(708, "마름모");   // 마름모
@@ -189,19 +203,21 @@ public class MainActivity extends AppCompatActivity {
 //                            + (scanData[27] & 0xff) * 0x100
 //                            + (scanData[28] & 0xff);
 
-                    Message msg = mMainHandler.obtainMessage();
-                    // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
-                    blockId = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
-                    msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
-                    mMainHandler.sendMessage(msg);
-
                     mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
                     mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+
+                    Message msg = mMainHandler.obtainMessage();
+                    // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
+//                    blockId = mappingNFCtoBlockId.get(mMinor);
+                    blockId = mMinor;
+                    msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                    mMainHandler.sendMessage(msg);
 
 //                    stateRule.insertBlock(mappingNFC.get(blockId));
 //                    Message msg = mMainHandler.obtainMessage();
                     msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
-                    msg.obj = "수신 block ID : " + mappingNFC.get(blockId) + "\nReal Value; " + mMajor + "\t" + mMinor + "\n";
+                    msg.obj = "수신 block ID : " + mappingNFC.get(blockId) +
+                              "\nReal Value; " + mMajor + "\t" + mMinor;
                     mMainHandler.sendMessage(msg);
 
                 } catch (Exception e) {
