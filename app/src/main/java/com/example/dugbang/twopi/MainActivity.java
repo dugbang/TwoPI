@@ -183,20 +183,23 @@ public class MainActivity extends AppCompatActivity {
 //                    msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
 //                    blockId = mappingNFC.get((scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff));
 
-                    mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
-                    mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
-
-//                    Message msg = mMainHandler.obtainMessage();
 //                    msg.obj = "onScanResult; \n" + strScanResult + "\n" + mMajor + "\t" + mMinor + "\n";
 
 //                    blockId = (scanData[26] & 0xff) * 0x10000
 //                            + (scanData[27] & 0xff) * 0x100
 //                            + (scanData[28] & 0xff);
 
+                    Message msg = mMainHandler.obtainMessage();
                     // TODO; 실제 블록 팟이 동작할 경우 활성화 시킨다.
                     blockId = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+                    msg.what = HANDLER_EVENT_BLOCK_ID_BLE;
+                    mMainHandler.sendMessage(msg);
+
+                    mMajor = (scanData[25] & 0xff) * 0x100 + (scanData[26] & 0xff);
+                    mMinor = (scanData[27] & 0xff) * 0x100 + (scanData[28] & 0xff);
+
 //                    stateRule.insertBlock(mappingNFC.get(blockId));
-                    Message msg = mMainHandler.obtainMessage();
+//                    Message msg = mMainHandler.obtainMessage();
                     msg.what = HANDLER_EVENT_SEND_MSG_OUTPUT;
                     msg.obj = "수신 block ID : " + mappingNFC.get(blockId) + "\nReal Value; " + mMajor + "\t" + mMinor + "\n";
                     mMainHandler.sendMessage(msg);
