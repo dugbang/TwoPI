@@ -153,29 +153,42 @@ public class MainActivity extends AppCompatActivity {
         mappingNFCtoBlockId.put(561, 0xFFFFFF);
         mappingNFCtoBlockId.put(559, 2);
         mappingNFCtoBlockId.put(614, 2);
-        mappingNFCtoBlockId.put(100, 3);
+//        mappingNFCtoBlockId.put(100, 3);
 
         mappingNFC.put(100, "0");   // 0
         mappingNFC.put(567, "1");   // 1
         mappingNFC.put(721, "2");   // 2
         mappingNFC.put(571, "3");   // 3
 
-        mappingNFCtoBlockId.put(567, 2);    // 1
-        mappingNFCtoBlockId.put(721, 2);    // 2
-        mappingNFCtoBlockId.put(571, 2);    // 3
+        mappingNFCtoBlockId.put(567, 101);    // 1
+        mappingNFCtoBlockId.put(721, 102);    // 2
+        mappingNFCtoBlockId.put(571, 103);    // 3
 
         mappingNFC.put(562, "삼각형");   // 삼각형
         mappingNFC.put(708, "마름모");   // 마름모
         mappingNFC.put(564, "원");   // 원
         mappingNFC.put(100, "별");   // 별
 
+        mappingNFCtoBlockId.put(562, 110);   // 삼각형
+        mappingNFCtoBlockId.put(708, 111);   // 마름모
+        mappingNFCtoBlockId.put(564, 112);   // 원
+//        mappingNFCtoBlockId.put(100, "별");   // 별
+
         mappingNFC.put(717, "E");   // E
         mappingNFC.put(712, "L");   // L
         mappingNFC.put(569, "O");   // O
         mappingNFC.put(707, "P");   // P
 
+        mappingNFCtoBlockId.put(717, 114);   // E
+        mappingNFCtoBlockId.put(712, 115);   // L
+        mappingNFCtoBlockId.put(569, 116);   // O
+        mappingNFCtoBlockId.put(707, 117);   // P
+
         mappingNFC.put(710, "주관식 1");   // 주관식 1
         mappingNFC.put(100, "주관식 2");   // 주관식 2
+
+        mappingNFCtoBlockId.put(710, 118);   // 주관식 1
+        mappingNFCtoBlockId.put(100, 119);   // 주관식 2
         // ========================================================
 
         mScanCallback = new ScanCallback() {
